@@ -1,5 +1,4 @@
 import cv2
-import numpy as np
 from typing import List
 
 def open_stream(list_index : List[int]):

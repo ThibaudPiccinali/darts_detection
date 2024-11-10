@@ -15,24 +15,24 @@ time.sleep(1)
 ###### Capture (et mise en forme) des images ######
 
 # Capturer les images
-a_colors = cam.get_frame(cap)
-a = cv2.cvtColor(a_colors, cv2.COLOR_BGR2GRAY)
+base_image_colors = cam.get_frame(cap)
+base_image = cv2.cvtColor(base_image_colors, cv2.COLOR_BGR2GRAY)
 # Convertir les images en format compatible (unsigned char)
-image1 = np.array(a,dtype=np.uint8)
-image1 = np.stack([image1] * 3, axis=-1)
-pp.display(image1,"Image 1")
+base_image = np.array(base_image,dtype=np.uint8)
+base_image_grey = np.stack([base_image] * 3, axis=-1)
+pp.display(base_image_grey,"Image de base en niveau de gris")
     
-b_colors = cam.get_frame(cap)
-b = cv2.cvtColor(b_colors, cv2.COLOR_BGR2GRAY)
+dart_image_colors = cam.get_frame(cap)
+dart_image = cv2.cvtColor(dart_image_colors, cv2.COLOR_BGR2GRAY)
 # Convertir les images en format compatible (unsigned char)
-image2 = np.array(b,dtype=np.uint8)
-image2 = np.stack([image2] * 3, axis=-1)
-pp.display(image2,"Image 2")
+dart_image = np.array(dart_image,dtype=np.uint8)
+dart_image_grey = np.stack([dart_image] * 3, axis=-1)
+pp.display(dart_image_grey,"Image avec la flechette en niveau de gris")
 
 ###### Première étape de detection (comparaison entre les deux images) ######
 
 # Appeler la fonction pour obtenir les différences binaires
-diff_image = pp.binary_diff_images(image1, image2)
+diff_image = pp.binary_diff_images(base_image_grey, dart_image_grey)
 
 # Afficher les résultats (différences en blanc)
 cv2.imshow('diff_image', diff_image.astype(np.uint8))
@@ -51,12 +51,12 @@ filtered_image = pp.filter_by_centroid(opened_image, 170)
 
 ###### Affichage final ######
 
-for i in range(len(a)):
-    for j in range(len(a[0])):
+for i in range(len(dart_image_colors)):
+    for j in range(len(dart_image_colors[0])):
         if filtered_image[i][j] == 255:
-            b_colors[i][j] = [0, 0, 255]
+            dart_image_colors[i][j] = [0, 0, 255]
     
-cv2.imshow('Detection',b_colors)
+cv2.imshow('Detection',dart_image_colors)
     
 cv2.waitKey(0)
 cv2.destroyAllWindows()

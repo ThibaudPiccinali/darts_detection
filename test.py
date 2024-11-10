@@ -14,9 +14,9 @@ else:
         if not ret:
             print("Erreur : impossible de lire l'image de la caméra")
             break
-        print(frame)
         # Affiche la frame
-        cv2.imwrite("image.jpg", frame)
+        frame = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        cv2.imwrite("image3.jpg", frame)
 
 
 # Libère les ressources

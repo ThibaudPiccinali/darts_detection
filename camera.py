@@ -37,64 +37,54 @@ def display(pixels: np.ndarray, window_name: str) -> None:
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-# Fonction pour comparer deux pixels avec une tolérance donnée
-def is_close(a, b, rel_tol=1e-09, abs_tol=0.0):
-    return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
-
-# Fonction pour vérifier si les pixels de deux images sont similaires
-def pixels_are_similar(a, b, t):
-    return is_close(a[0], b[0], rel_tol=t) and is_close(a[1], b[1], rel_tol=t) and is_close(a[2], b[2], rel_tol=t)
 
 # Fonction pour effectuer la comparaison binaire d'images
-def binary_diff_images(a, b, y_bounds=None, t=1e-09):
-    h, w, _ = a.shape
-    if y_bounds is None:
-        y_bounds = (0, h)
-
+def binary_diff_images(pixels_list_a, pixels_list_b):
+    h, w, _ = pixels_list_a.shape
     # Créer une image vide pour stocker les résultats
-    result = np.zeros((y_bounds[1] - y_bounds[0], w), dtype=int)
-
-    # Comparer les pixels
-    for y in range(y_bounds[0], y_bounds[1]):
-        for x in range(0, w):
-            # Si les pixels sont différents, mettre 255 (blanc) dans le résultat
-            result[y - y_bounds[0], x] = 0 if pixels_are_similar(a[y, x], b[y, x], t) else 255
-
+    result = np.zeros((h, w), dtype=int)
+    for i in range(len(pixels_list_a)):
+        for j in range(len(pixels_list_a[0])):
+                if abs(int(pixels_list_a[i][j][0]) - int(pixels_list_b[i][j][0])) > 50:
+                    result[i][j] = 255
+    
     return result
 
-#### Pour la prochaine fois
-# -> essayer le filtrage ci dessous en descandant la camera le plus possible (ou en remontant la cible) pour espérer avoir de meilleurs réslutats
 
 if __name__ == '__main__':
     cap = open_stream([1])[0]
     # display(get_frame(cap),"test")
 
     # Charger les images
-    a = cv2.imread('image_gris.png')
-    b = cv2.imread('image_gris2.png')
+    a = cv2.imread('image.jpg')
+    b = cv2.imread('image3.jpg')
 
     # Vérifier que les deux images ont la même taille
     if a.shape != b.shape:
         raise ValueError("Les images doivent avoir la même taille")
 
     # Convertir les images en format compatible (unsigned char)
-    image1 = np.array(a, dtype=np.uint8)
-    image2 = np.array(b, dtype=np.uint8)
+    image1 = np.array(a)
+    image2 = np.array(b)
     
     # Appeler la fonction pour obtenir les différences binaires
-    y_bounds = (0, image1.shape[0])  # Comparer toute l'image
-    threshold = 0.05  # Seuil de tolérance
-    diff_image = binary_diff_images(image1, image2, y_bounds, threshold)
+    diff_image = binary_diff_images(image1, image2)
 
     # Afficher les résultats (différences en blanc)
     cv2.imshow('diff_image', diff_image.astype(np.uint8))
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
     diff_image = np.uint8(diff_image)
     
-    kernel = np.ones((5,5),np.uint8)
-    opening = cv2.morphologyEx(diff_image, cv2.MORPH_OPEN, kernel)
+    kernel = np.ones((2,2),np.uint8)
+    opened_image = cv2.morphologyEx(diff_image, cv2.MORPH_OPEN, kernel)
     
-    cv2.imshow('opening', opening.astype(np.uint8))
+    cv2.imshow('erosion', opened_image.astype(np.uint8))
+    
+    for i in range(len(a)):
+        for j in range(len(a[0])):
+                if opened_image[i][j] == 255:
+                    b[i][j] = [0, 0, 255]
+    
+    cv2.imshow('Detection', b)
+    
     cv2.waitKey(0)
     cv2.destroyAllWindows()

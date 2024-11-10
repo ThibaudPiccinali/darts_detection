@@ -3,6 +3,8 @@ import cv2
 # Ouvre le flux vidéo de la caméra (index 0 pour la caméra par défaut)
 cap = cv2.VideoCapture(1)
 
+print(cap)
+
 if not cap.isOpened():
     print("Erreur : impossible d'ouvrir la caméra")
 else:

@@ -7,7 +7,7 @@ import processing_pixels as pp
 
 ###### Activation des caméras ######
 
-cap1, cap2 = cam.open_stream([1, 2])
+cap1, cap2 = cam.open_stream([1, 2]) # Les caméras doivent être sur deux ports différents
 
 # Necessaire parce que doit laisser le temps à la caméra de bien de setup
 _ = cam.get_frame(cap1)
@@ -89,6 +89,22 @@ for i in range(len(base_image_cam2_colors)):
             
         if filtered_image_cam2[i][j] == 255:
             dart_image_cam2_colors[i][j] = [0, 0, 255]
+
+
+# Trouver les coordonnées des pixels blancs (255)
+points_felchette_cam1 = np.column_stack(np.where(filtered_image_cam1 == 255))
+
+# Trouver le point avec la plus grande coordonnée y
+lowest_point_felchette_cam1 = points_felchette_cam1[points_felchette_cam1[:, 0].argmax()]
+# Inverser les coordonnées pour obtenir (x, y)
+lowest_point_felchette_cam1 = (lowest_point_felchette_cam1[1], lowest_point_felchette_cam1[0])
+
+points_felchette_cam2 = np.column_stack(np.where(filtered_image_cam2 == 255))
+lowest_point_felchette_cam2 = points_felchette_cam2[points_felchette_cam2[:, 0].argmax()]
+lowest_point_felchette_cam2 = (lowest_point_felchette_cam2[1], lowest_point_felchette_cam2[0])
+
+print(f"Le point le plus bas sur la caméra 1 est à la position : {lowest_point_felchette_cam1}")
+print(f"Le point le plus bas sur la caméra 2 est à la position : {lowest_point_felchette_cam2}")
 
 cv2.imshow('Detection cam 1',dart_image_cam1_colors)    
 cv2.imshow('Detection cam 2',dart_image_cam2_colors)

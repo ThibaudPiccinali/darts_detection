@@ -57,3 +57,33 @@ def filter_by_centroid(image, radius):
                 filtered_image[y, x] = 255
 
     return filtered_image
+
+def triangulate_point(K1, K2, R1, T1, R2, T2,pts1, pts2):
+    """
+    Calcule la position réelle de la fléchette par triangulation.
+
+    :param pts1: Point dans l'image de la première caméra (x, y).
+    :param pts2: Point dans l'image de la deuxième caméra (x, y).
+    :param K1: Matrice intrinsèque de la première caméra.
+    :param K2: Matrice intrinsèque de la deuxième caméra.
+    :param R1: Matrice de rotation de la première caméra.
+    :param T1: Vecteur de translation de la première caméra.
+    :param R2: Matrice de rotation de la deuxième caméra.
+    :param T2: Vecteur de translation de la deuxième caméra.
+    :return: Position 3D de la fléchette dans le monde réel (X, Y, Z).
+    """
+    # Convertir les points d'image en coordonnées homogènes (arrays numpy)
+    pts1_hom = np.array([pts1[0], pts1[1], 1.0], dtype=np.float32)
+    pts2_hom = np.array([pts2[0], pts2[1], 1.0], dtype=np.float32)
+
+    # Obtenir les matrices de projection des caméras
+    P1 = np.dot(K1, np.hstack((R1, T1)))
+    P2 = np.dot(K2, np.hstack((R2, T2)))
+
+    # Calculer la triangulation
+    point_3d_hom = cv2.triangulatePoints(P1, P2, pts1_hom[:2].reshape(-1, 1), pts2_hom[:2].reshape(-1, 1))
+
+    # Convertir les coordonnées homogènes en coordonnées 3D
+    point_3d = point_3d_hom[:3] / point_3d_hom[3]
+
+    return point_3d.flatten()

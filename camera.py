@@ -31,7 +31,7 @@ def get_intrinsix_matrix(path_images):
     # Préparer les objets 3D du monde réel (un damier avec des coins connus)
     # Points du damier dans le monde réel (coordonnées de chaque coin)
     pattern_size = (8, 6)  # Le nombre de coins dans le damier (9x6)
-    square_size = 2.5  # La taille des carrés en unités arbitraires (par exemple, en mm ou cm)
+    square_size = 2.5  # La taille des carrés en unités arbitraires (cm)
 
     # Préparez les points de référence 3D, en supposant que le damier est sur le plan z=0
     obj_points = np.zeros((np.prod(pattern_size), 3), dtype=np.float32)
@@ -66,8 +66,6 @@ def get_intrinsix_matrix(path_images):
     ret, K, dist_coeffs, rvecs, tvecs = cv2.calibrateCamera(obj_points_list, img_points_list, gray.shape[::-1], None, None)
 
     # K est la matrice intrinsèque
-    print("Matrice intrinsèque :")
-    print(K)
     return K
 
 

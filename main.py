@@ -141,53 +141,17 @@ print("Coordonnées de la flechette (repère cam1) :")
 print(points_2D_felchette)
 
 R = np.eye(3)  # Rotation de la caméra 1 par rapport au centre de le cible
-T = np.array([[0, 0, -30]])  # Translation de la caméra 1
+T = np.array([0, 0, -30])  # Translation de la caméra 1
 points_2D_felchette_reel = np.dot(R,points_2D_felchette) + T
 
 print("Coordonnées de la flechette (repère centre de la cible) :")
 print(points_2D_felchette_reel[0],points_2D_felchette_reel[2])
 
-# # Droite
-# lowest_point_felchette_cam1 = (0, 240)
-# lowest_point_felchette_cam2 = (320, 240)
+##### Affichage final de la flechette sur la cible ######
 
-# # Triangulation pour obtenir les points 3D
-# points_2D_felchette = pp.triangulate_point(K1, K2, R1, T1, R2, T2, np.array((lowest_point_felchette_cam1)), np.array((lowest_point_felchette_cam2)))
+board_image = cv2.imread('cible_template.jpg')
 
-# # Affichage des résultats
-# print("Coordonnées de la flechette Droite :")
-# print(points_2D_felchette)
+pp.display_dart_on_board((points_2D_felchette_reel[0],points_2D_felchette_reel[2]),21.5,board_image)
 
-# # Gauche
-# lowest_point_felchette_cam1 = (640, 240)
-# lowest_point_felchette_cam2 = (320, 240)
-
-# # Triangulation pour obtenir les points 3D
-# points_2D_felchette = pp.triangulate_point(K1, K2, R1, T1, R2, T2, np.array((lowest_point_felchette_cam1)), np.array((lowest_point_felchette_cam2)))
-
-# # Affichage des résultats
-# print("Coordonnées de la flechette Gauche :")
-# print(points_2D_felchette)
-
-# # Haut 
-# lowest_point_felchette_cam1 = (320, 240)
-# lowest_point_felchette_cam2 = (640, 240)
-
-# # Triangulation pour obtenir les points 3D
-# points_2D_felchette = pp.triangulate_point(K1, K2, R1, T1, R2, T2, np.array((lowest_point_felchette_cam1)), np.array((lowest_point_felchette_cam2)))
-
-# # Affichage des résultats
-# print("Coordonnées de la flechette Haut :")
-# print(points_2D_felchette)
-
-# # Bas 
-# lowest_point_felchette_cam1 = (320, 240)
-# lowest_point_felchette_cam2 = (0, 240)
-
-# # Triangulation pour obtenir les points 3D
-# points_2D_felchette = pp.triangulate_point(K1, K2, R1, T1, R2, T2, np.array((lowest_point_felchette_cam1)), np.array((lowest_point_felchette_cam2)))
-
-# # Affichage des résultats
-# print("Coordonnées de la flechette Bas :")
-# print(points_2D_felchette)
-
+# Décalage sur l'axe x -> Surement due au setup ou aux matrices
+# Mais globalement c'est ça.

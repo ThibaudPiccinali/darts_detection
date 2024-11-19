@@ -71,23 +71,17 @@ def get_intrinsix_matrix(path_images):
 
 if __name__ == '__main__':
     # Captures utiles pour la calibration
-    # cap1, cap2 = open_stream([1, 2])
-    # _ = get_frame(cap1)
+    # cap = open_stream([1])[0]
+    # _ = get_frame(cap)
     # time.sleep(1) 
-    # _ = get_frame(cap2)
-    # time.sleep(1)
     # i=1
     # while True:
-    #     pixels_cam1 = get_frame(cap1)
-    #     pixels_cam2 = get_frame(cap2)
+    #     pixels_cam = get_frame(cap)
         
-    #     # cv2.imwrite(f'cam1_images/cam1_image{i}.jpg', pixels_cam1)
-    #     cv2.imwrite(f'cam2_images/cam2_image{i}.jpg', pixels_cam2)
+    #     cv2.imwrite(f'cam2_images/cam2_image{64+i}.jpg', pixels_cam)
         
-    #     cv2.imshow(f'cam1 {i}', pixels_cam1.astype(np.uint8))
-    #     cv2.imshow(f'cam2 {i}', pixels_cam2.astype(np.uint8))
+    #     cv2.imshow(f'cam {i}', pixels_cam.astype(np.uint8))
     #     cv2.waitKey(0)
     #     cv2.destroyAllWindows()
     #     i+=1
-    get_intrinsix_matrix('cam1_images/*.jpg')
-    get_intrinsix_matrix('cam2_images/*.jpg')
+    print(get_intrinsix_matrix('cam2_images/*.jpg'))

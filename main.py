@@ -8,7 +8,7 @@ import processing_pixels as pp
 
 ###### Activation des caméras ######
 
-cap1, cap2 = cam.open_stream([1, 0]) # Les caméras doivent être sur deux ports différents
+cap1, cap2 = cam.open_stream([2, 0]) # Les caméras doivent être sur deux ports différents
 
 # Necessaire parce que doit laisser le temps à la caméra de bien de setup
 _ = cam.get_frame(cap1)
@@ -153,5 +153,5 @@ board_image = cv2.imread('cible_template.jpg')
 
 pp.display_dart_on_board((points_2D_felchette_reel[0],points_2D_felchette_reel[2]),21.5,board_image)
 
-# Décalage sur l'axe x -> Surement due au setup ou aux matrices
-# Mais globalement c'est ça.
+# Calcul du score asssocié
+print(f"Score : {pp.calculate_score(points_2D_felchette_reel[0],points_2D_felchette_reel[2])}")

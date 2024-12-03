@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contrôle en temps réel - Scores des Joueurs</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        // Fonction pour obtenir les scores depuis le serveur Flask
+        function getScores() {
+            fetch("/get_all_scores")
+                .then(response => response.json())
+                .then(data => {
+                    // Met à jour la table des scores avec les données
+                    const tbody = document.getElementById("scoresTableBody");
+                    tbody.innerHTML = ""; // Vider la table avant d'ajouter les nouvelles lignes
+                    data.scores.forEach(player => {
+                        const tr = document.createElement("tr");
+                        const tdNom = document.createElement("td");
+                        tdNom.textContent = player[0]; // player[0] est le nom
+                        const tdScore = document.createElement("td");
+                        tdScore.textContent = player[1]; // player[1] est le score
+                        tr.appendChild(tdNom);
+                        tr.appendChild(tdScore);
+                        tbody.appendChild(tr);
+                    });
+                });
+        }
+
+        // Appeler getScores() toutes les 5 secondes pour actualiser la table
+        setInterval(getScores, 5000);  // 5000ms = 5 secondes
+
+        // Appeler getScores une première fois au chargement de la page
+        window.onload = getScores;
+    </script>
+</head>
+<body>
+    <div>
+        <h1>Scores des Joueurs</h1>
+        
+        <!-- Table des scores -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Score</th>
+                </tr>
+            </thead>
+            <tbody id="scoresTableBody">
+                <!-- Les scores seront ajoutés dynamiquement ici -->
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

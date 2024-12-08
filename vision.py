@@ -1,6 +1,5 @@
 import cv2
 import glob
-import time
 import numpy as np
 
 import utils as utils

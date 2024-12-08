@@ -26,6 +26,8 @@
     <p id="currentPlayer">Joueur actuel : Chargement...</p>
     <p id="nbPlayers">Nombre de joueurs : Chargement...</p>
 
+    <button id="restartButton">Recommencer la partie</button>
+
     <script>
         async function updateData() {
             const response = await fetch('/api/data');
@@ -71,6 +73,17 @@
         }
 
         setInterval(updateData, 2000);
+
+        // Gestionnaire du bouton Restart
+        document.getElementById('restartButton').addEventListener('click', async () => {
+            const response = await fetch('/api/restart_game', { method: 'POST' });
+            if (response.ok) {
+                alert('Le jeu a été redémarré !');
+                updateData(); // Mise à jour immédiate après le redémarrage
+            } else {
+                alert('Erreur lors du redémarrage.');
+            }
+        });
     </script>
 </body>
 </html>

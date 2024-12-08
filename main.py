@@ -1,9 +1,21 @@
 import time
 import cv2
+import json
+
+import paho.mqtt.client as mqtt
 
 import utils as utils
 import vision as vision
 import objet as obj
+
+##### Configuration MQTT
+BROKER = "localhost"  # Adresse du broker MQTT (localhost pour local)
+PORT = 1883           # Port MQTT
+TOPIC = "darts" # Sujet sur lequel les messages seront publiés
+# Client MQTT
+client = mqtt.Client()
+# Connexion au broker
+client.connect(BROKER, PORT, 60)
 
 # ###### Activation des caméras ######
 
@@ -32,4 +44,6 @@ partie = obj.Game(liste_joueurs)
 exit = 1
 
 while exit != -1:
+    # On envoie les données au serveur
+    client.publish(TOPIC, json.dumps(partie.to_dict()))
     exit = partie.next_turn(cap1,cap2,cible)

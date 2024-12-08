@@ -1,26 +1,51 @@
-from flask import Flask, render_template, jsonify
-import sqlite3
+from flask import Flask, jsonify, render_template
+import paho.mqtt.client as mqtt
+import json
+import threading
 
 app = Flask(__name__)
 
-def fetch_all_scores():
-    connection = sqlite3.connect("darts.db")
-    cursor = connection.cursor()
-    scores = cursor.execute("SELECT nom, score FROM scores").fetchall()
-    connection.close()
-    return scores
+# Configuration MQTT
+BROKER = "localhost"
+PORT = 1883
+TOPIC = "darts"
 
-@app.route("/")
+data = {}
+
+def on_connect(client, userdata, flags, rc):
+    print("Connecté au broker MQTT avec le code de retour", rc)
+    client.subscribe(TOPIC)
+
+def on_message(client, userdata, msg):
+    global data
+    print("Message reçu :", msg.payload.decode())
+    data = json.loads(msg.payload.decode())  # Mettre à jour les données
+
+# Initialiser le client MQTT
+mqtt_client = mqtt.Client()
+mqtt_client.on_connect = on_connect
+mqtt_client.on_message = on_message
+
+# Thread pour gérer MQTT séparément
+def start_mqtt():
+    mqtt_client.connect(BROKER, PORT, 60)
+    mqtt_client.loop_forever()
+
+threading.Thread(target=start_mqtt, daemon=True).start()
+
+# Route pour récupérer les données
+@app.route('/api/data')
+def get_data():
+    response = jsonify(data)
+    response.charset = 'utf-8'  # Spécification de l'encodage UTF-8
+    return response
+
+# Route pour la page HTML
+@app.route('/')
 def index():
-    return render_template("main.html")
+    return render_template('main.html')
 
-# Route pour obtenir la valeur actuelle de la base de données
-@app.route("/get_all_scores")
-def get_all_scores():
-    scores = fetch_all_scores()
-    return jsonify({"scores": scores})
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+if __name__ == '__main__':
+    app.run(host="0.0.0.0", port=5000)
 
 

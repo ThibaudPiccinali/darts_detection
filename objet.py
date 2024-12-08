@@ -66,6 +66,14 @@ class Player:
         print(f"---------- {self.nom} ----------")
         print(f"ID : {self.id}")
         print(f"Nombre de partie jouée(s) : {self.nb_party_played}")
+    
+    # Méthode to_dict pour convertir l'objet Player en dictionnaire
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'nom': self.nom,
+            'nb_party_played': self.nb_party_played
+        }
             
 class Game:
     def __init__(self, list_players):
@@ -77,7 +85,16 @@ class Game:
         
         for player in self.players:
             player.nb_party_played+=1
-            
+    
+    def to_dict(self):
+        return {
+            'players': [player.to_dict() for player in self.players],  # Convertir chaque player en dict
+            'scores': self.scores,
+            'detailed_scores': self.detailed_scores,
+            'index_current_player': self.index_current_player,
+            'nb_player': self.nb_player
+        }
+      
     def restart(self):
         self.scores = [301 for i in range(len(self.players))] # Le cumul des scores
         self.detailed_scores = [[] for i in range(len(self.players))] # Le score détaillé

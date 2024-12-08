@@ -1,5 +1,4 @@
 import cv2
-import math
 import numpy as np
 
 def display(pixels: np.ndarray, window_name: str) -> None:
@@ -89,52 +88,3 @@ def triangulate_point(K1, K2, R1, T1, R2, T2,pts1, pts2):
 
     return point_3d.flatten()
 
-def display_dart_on_board(pos_dart,radius_board,board_image):
-    size_board_image = board_image.shape[0] # Suppose que l'image soit carré
-    pos_dart_pixels = (pos_dart[0]*size_board_image/(radius_board*2),pos_dart[1]*size_board_image/(radius_board*2))
-
-    point_x = int(size_board_image // 2 - pos_dart_pixels[0])
-    point_y = int(size_board_image // 2 + pos_dart_pixels[1])
-    
-    cv2.imshow('Pointe flechette cam 1',cv2.circle(board_image, (point_x, point_y), 5, [0,0,255], -1))   
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
-
-def calculate_score(x, y):
-    
-    SECTORS = [11,8,16,7,19,3,17,2,15,10,6,13,4,18,1,20,5,12,9,14] # sens particulier parce repère de la cible non usuel
-    RADIUS_BULLSEYE = 1.5/2
-    RADIUS_OUTER_BULLSEYE = 3.2/2
-    RADIUS_DOUBLE_INNER = 16
-    RADIUS_DOUBLE_OUTER = 16.9
-    RADIUS_TRIPLE_INNER = 9.5
-    RADIUS_TRIPLE_OUTER = 10.5
-    
-    # Calcul de la distance au centre
-    r = math.sqrt(x**2 + y**2)
-    
-    # Vérification des zones concentriques
-    if r <= RADIUS_BULLSEYE:
-        return 50  # Bullseye
-    elif r <= RADIUS_OUTER_BULLSEYE:
-        return 25  # Outer Bullseye
-    elif r > RADIUS_DOUBLE_OUTER:
-        return 0  # Hors cible
-    
-    # Calcul de l'angle pour déterminer le secteur
-    angle = math.degrees(math.atan2(y, x))
-    if angle < 0:
-        angle += 360
-    
-    # Trouver le secteur (chaque secteur = 18°)
-    sector_index = int(angle // 18)
-    sector_value = SECTORS[sector_index]
-    
-    # Vérification des anneaux (Triple, Double)
-    if RADIUS_TRIPLE_INNER <= r <= RADIUS_TRIPLE_OUTER:
-        return sector_value * 3  # Triple ring
-    elif RADIUS_DOUBLE_INNER <= r <= RADIUS_DOUBLE_OUTER:
-        return sector_value * 2  # Double ring
-    
-    # Si aucune condition spéciale, retourner la valeur du secteur
-    return sector_value

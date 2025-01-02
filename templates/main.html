@@ -23,10 +23,31 @@
         </tbody>
     </table>
 
-    <h2>Statut du Jeu</h2>
-    <p id="currentPlayer">Joueur actuel : Chargement...</p>
-    <p id="nbPlayers">Nombre de joueurs : Chargement...</p>
+    <div class="panel">
+        <div class="column">
+            <h2>Statut du Jeu</h2>
+            <p id="currentPlayer">Joueur actuel : Chargement...</p>
+            <p id="nbPlayers">Nombre de joueurs : Chargement...</p>
+            <button id="restartButton">Recommencer la partie</button>
 
-    <button id="restartButton">Recommencer la partie</button>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Fléchette 1</th>
+                        <th>Fléchette 2</th>
+                        <th>Fléchette 3</th>
+                    </tr>
+                </thead>
+                <tbody id="3dartsTable">
+                    <!-- Table des 3 dernières flechettes sera mise à jour ici -->
+                </tbody>
+            </table>
+        </div>
+        <div class="column">
+            <img id = "dartboardImage" src="{{ url_for('images', filename='dartboard.png') }}" alt="dartboard image" width="600" height="600">
+        </div>
+    </div>
+
+
 </body>
 </html>

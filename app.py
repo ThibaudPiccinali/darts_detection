@@ -32,9 +32,7 @@ def game():
     # Setup utilisé
     cible = obj.Dartboard()
 
-    pos_dart = [13,1.9]
-    cible.save_image_dart_on_board("test.png",pos_dart)
-    print(f"Score : {cible.compute_score(pos_dart)}")
+    #cible.save_image_dart_on_board("images/dartboard.png",[])
     global partie 
     partie = obj.Game(liste_joueurs)
 
@@ -64,6 +62,12 @@ def restart_game():
 @app.route('/')
 def index():
     return render_template('main.html')
+
+# Route pour le dossier images
+@app.route('/images/<path:filename>')
+def images(filename):
+    from flask import send_from_directory
+    return send_from_directory('images', filename)
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=5000)

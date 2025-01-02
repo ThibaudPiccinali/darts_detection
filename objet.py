@@ -50,7 +50,7 @@ class Dartboard:
         # Si aucune condition spéciale, retourner la valeur du secteur
         return sector_value
 
-    def save_image_dart_on_board(self,image_name,pos_dart):
+    def save_image_dart_on_board(self,image_name,darts):
 
         # Define scoring segments
         segments = 20  # Number of scoring segments (1 to 20)
@@ -130,9 +130,12 @@ class Dartboard:
             y = (self.radius_double_outer + 1.5) * np.sin(angle)
             ax.text(x, y, str(score), ha='center', va='center', fontweight='bold', fontsize=15, color='white')
 
-        # Display darts 
-        dart = plt.Circle((pos_dart), 0.5, color=dart_color, zorder=2)
-        ax.add_artist(dart)
+        # Display darts
+        for pos_dart in darts :
+            if len(pos_dart) != 0:
+                dart = plt.Circle((pos_dart), 0.5, color=dart_color, zorder=2)
+                ax.add_artist(dart)
+        
         plt.savefig(image_name, bbox_inches='tight', pad_inches=0.1, transparent=True)
 
 
@@ -162,6 +165,8 @@ class Game:
         self.detailed_scores = [[] for i in range(len(self.players))] # Le score détaillé
         self.index_current_player = 0 # Le joueur qui doit jouer
         self.nb_player = len(list_players)
+        self.last_darts_pos = [[], [] ,[]]
+        self.last_darts_score = [-1, -1 ,-1]
         
         for player in self.players:
             player.nb_party_played+=1
@@ -172,7 +177,9 @@ class Game:
             'scores': self.scores,
             'detailed_scores': self.detailed_scores,
             'index_current_player': self.index_current_player,
-            'nb_player': self.nb_player
+            'nb_player': self.nb_player,
+            'last_darts_pos': self.last_darts_pos,
+            'last_darts_score': self.last_darts_score
         }
       
     def restart(self):
@@ -183,22 +190,16 @@ class Game:
     def next_turn(self,cap1,cap2,dartboard):
         print(f"C'est à {self.players[self.index_current_player].nom} de jouer")
         
-        # 3 fléchettes
-        print("Première fléchette")
-        pos_dart = vision.get_coord_dart(cap1,cap2)
-        score1 = dartboard.compute_score(pos_dart)
-        print(score1)
-        print("Deuxième fléchette")
-        pos_dart = vision.get_coord_dart(cap1,cap2)
-        score2 = dartboard.compute_score(pos_dart)
-        print(score2)
-        print("Troisième fléchette")
-        pos_dart = vision.get_coord_dart(cap1,cap2)
-        score3 = dartboard.compute_score(pos_dart)
-        print(score3)
+        for i in range(3):
+            # 3 fléchettes
+            pos_dart = vision.get_coord_dart(cap1,cap2)
+            score = dartboard.compute_score(pos_dart)
+            self.last_darts_pos[i] = pos_dart
+            self.last_darts_score[i] = score
+            dartboard.save_image_dart_on_board("images/dartboard.png",pos_dart)
         
         # On met à jour la table des scores
-        score = score1 + score2 + score3
+        score = self.last_darts_score[0] + self.last_darts_score[1] + self.last_darts_score[2]
         print(f"{self.players[self.index_current_player].nom} a marqué {score} points")
         self.scores[self.index_current_player] -= score
         self.detailed_scores[self.index_current_player].append(score)
@@ -212,6 +213,10 @@ class Game:
             print(f"Fin de tour pour {self.players[self.index_current_player].nom}. Ramassez vos flechettes puis pressez <Enter>")
             input()
             # On passe la main au prochain joueur
+            # On réinitialise les dernières flechettes
+            self.last_darts_score = [-1, -1 ,-1]
+            self.last_darts_pos = [[], [] ,[]]
+            
             self.index_current_player = (self.index_current_player + 1 )%self.nb_player
             return 1
     

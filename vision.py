@@ -196,6 +196,9 @@ def get_coord_dart(cap1,cap2,DEBUG=False):
     T = np.array([0, 0, -30])  # Translation de la caméra 1
     points_2D_felchette_reel = np.dot(R,points_2D_felchette) + T
     
+    # On remet les coordonnées dans un sens cohérent vis à vis de la cible
+    points_2D_felchette_reel = np.dot(utils.rot_z(180),points_2D_felchette_reel) # A vérifier si ça marche /!\
+    
     if DEBUG:
         # Affichage des résultats
         print("Coordonnées de la flechette (repère cam1) :")

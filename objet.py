@@ -1,9 +1,14 @@
-import cv2
 import math
+import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+
 import vision as vision
 
+matplotlib.use('agg')
+
 class Dartboard:
-    def __init__(self, radius = 21.5, sectors = [11,8,16,7,19,3,17,2,15,10,6,13,4,18,1,20,5,12,9,14], radius_bullseye = 1.5/2,radius_outer_bullseye = 3.2/2,radius_double_inner=16,radius_double_outer=16.9,radius_triple_inner=9.5,radius_triple_outer=10.5):
+    def __init__(self, radius = 21.5, sectors = [6, 13, 4, 18, 1, 20, 5, 12, 9, 14, 11, 8, 16, 7, 19, 3, 17, 2, 15, 10], radius_bullseye = 1.5/2,radius_outer_bullseye = 3.2/2,radius_double_inner=16,radius_double_outer=16.9,radius_triple_inner=9.5,radius_triple_outer=10.5):
         ## Attention ici sectors sens particulier parce repère de la cible non usuel -> à changer
         # Distances en cm
         self.radius = radius
@@ -12,12 +17,12 @@ class Dartboard:
         self.radius_outer_bullseye = radius_outer_bullseye
         self.radius_double_inner = radius_double_inner
         self.radius_double_outer = radius_double_outer
-        self.radius_triple_inner = radius_triple_inner 
+        self.radius_triple_inner = radius_triple_inner
         self.radius_triple_outer = radius_triple_outer
     
-    def compute_score(self,coord_x,coord_y):
+    def compute_score(self,pos_dart):
         # Calcul de la distance au centre
-        r = math.sqrt(coord_x**2 + coord_y**2)
+        r = math.sqrt(pos_dart[0]**2 + pos_dart[1]**2)
 
         # Vérification des zones concentriques
         if r <= self.radius_bullseye:
@@ -28,12 +33,12 @@ class Dartboard:
             return 0  # Hors cible
         
         # Calcul de l'angle pour déterminer le secteur
-        angle = math.degrees(math.atan2(coord_y, coord_x))
+        angle = math.degrees(math.atan2(pos_dart[1], pos_dart[0]) + 2*np.pi/40) # Il y a un décalage du au fait les sections sont décalées de 2*np.pi/40 sur chaque axe
         if angle < 0:
             angle += 360
         
         # Trouver le secteur (chaque secteur = 18°)
-        sector_index = int(angle // 18)
+        sector_index = int(angle // 18 )
         sector_value = self.sectors[sector_index]
         
         # Vérification des anneaux (Triple, Double)
@@ -45,17 +50,92 @@ class Dartboard:
         # Si aucune condition spéciale, retourner la valeur du secteur
         return sector_value
 
-    def display_dart_on_board(self,pos_dart,board_image):
-        size_board_image = board_image.shape[0] # Suppose que l'image soit carré
-        pos_dart_pixels = (pos_dart[0]*size_board_image/(self.radius*2),pos_dart[1]*size_board_image/(self.radius*2))
+    def save_image_dart_on_board(self,image_name,pos_dart):
 
-        point_x = int(size_board_image // 2 - pos_dart_pixels[0])
-        point_y = int(size_board_image // 2 + pos_dart_pixels[1])
+        # Define scoring segments
+        segments = 20  # Number of scoring segments (1 to 20)
+        angles = np.linspace(-2 * np.pi/20 + 2 * np.pi/40, 2 * np.pi + 2 * np.pi/40 - 2 * np.pi/20, segments + 1)
         
-        cv2.imshow('Pointe flechette cam 1',cv2.circle(board_image, (point_x, point_y), 5, [0,0,255], -1))   
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
-    
+        # Define colors for the segments and scoring areas
+        segment_colors = ['#FFFFFF', '#000000']  # Alternate white and black for the segments
+        triple_colors = ['#0F9536', '#E62F2B']  # Green for white sections, red for black sections
+        double_colors = ['#0F9536', '#E62F2B']  # Same as triple colors
+        bullseye_colors = ['#0F9536', '#E62F2B']  # Green for inner bull, red for outer bull
+        dart_color = '#F7F011'
+        
+        # Create the dartboard
+        fig, ax = plt.subplots(figsize=(8, 8))
+        ax.set_xlim(-self.radius, self.radius)
+        ax.set_ylim(-self.radius, self.radius)
+        ax.set_aspect('equal')
+        ax.axis('off')
+
+        # Ajouter un cercle noir avec un rayon de 10 unités et centré à (0, 0)
+        circle = plt.Circle((0, 0), self.radius, color='black', zorder=0)
+        # Ajouter le cercle à l'axe
+        ax.add_artist(circle)
+
+        # Draw the scoring segments (full pie sections)
+        for i in range(segments):
+            start_angle = angles[i]
+            end_angle = angles[i + 1]
+            segment_arc = np.linspace(start_angle, end_angle, 100)
+            outer_arc = [(self.radius_double_outer * np.cos(a), self.radius_double_outer * np.sin(a)) for a in segment_arc]
+            wedge = plt.Polygon(
+                [(0, 0)] + outer_arc,
+                closed=True,
+                color=segment_colors[i % 2],
+                zorder=0
+            )
+            ax.add_patch(wedge)
+
+        # Draw the inner and outer scoring areas (triple and double rings)
+        for i in range(segments):
+            start_angle = angles[i]
+            end_angle = angles[i + 1]
+            triple_color = triple_colors[i % 2]
+            double_color = double_colors[i % 2]
+
+            # Triple ring
+            triple_inner_arc = [(self.radius_triple_inner * np.cos(a), self.radius_triple_inner * np.sin(a)) for a in np.linspace(start_angle, end_angle, 100)]
+            triple_outer_arc = [(self.radius_triple_outer * np.cos(a), self.radius_triple_outer * np.sin(a)) for a in np.linspace(end_angle, start_angle, 100)]
+            triple_ring = plt.Polygon(
+                triple_inner_arc + triple_outer_arc,
+                closed=True,
+                color=triple_color,
+                zorder=1
+            )
+            ax.add_patch(triple_ring)
+
+            # Double ring
+            double_inner_arc = [(self.radius_double_inner * np.cos(a), self.radius_double_inner * np.sin(a)) for a in np.linspace(start_angle, end_angle, 100)]
+            double_outer_arc = [(self.radius_double_outer * np.cos(a), self.radius_double_outer * np.sin(a)) for a in np.linspace(end_angle, start_angle, 100)]
+            double_ring = plt.Polygon(
+                double_inner_arc + double_outer_arc,
+                closed=True,
+                color=double_color,
+                zorder=1
+            )
+            ax.add_patch(double_ring)
+
+        # Draw inner and outer rings for bullseye
+        for self.radius, color in zip([self.radius_outer_bullseye,self.radius_bullseye], bullseye_colors):
+            bull = plt.Circle((0, 0), self.radius, color=color, zorder=2)
+            ax.add_artist(bull)
+
+        # Annotate the scores
+        for i, score in enumerate(self.sectors):
+            angle = (angles[i] + angles[i + 1]) / 2
+            x = (self.radius_double_outer + 1.5) * np.cos(angle)
+            y = (self.radius_double_outer + 1.5) * np.sin(angle)
+            ax.text(x, y, str(score), ha='center', va='center', fontweight='bold', fontsize=15, color='white')
+
+        # Display darts 
+        dart = plt.Circle((pos_dart), 0.5, color=dart_color, zorder=2)
+        ax.add_artist(dart)
+        plt.savefig(image_name, bbox_inches='tight', pad_inches=0.1, transparent=True)
+
+
 class Player:
     def __init__(self, id, nom):
         self.nom = nom
@@ -106,15 +186,15 @@ class Game:
         # 3 fléchettes
         print("Première fléchette")
         pos_dart = vision.get_coord_dart(cap1,cap2)
-        score1 = dartboard.compute_score(pos_dart[0],pos_dart[1])
+        score1 = dartboard.compute_score(pos_dart)
         print(score1)
         print("Deuxième fléchette")
         pos_dart = vision.get_coord_dart(cap1,cap2)
-        score2 = dartboard.compute_score(pos_dart[0],pos_dart[1])
+        score2 = dartboard.compute_score(pos_dart)
         print(score2)
         print("Troisième fléchette")
         pos_dart = vision.get_coord_dart(cap1,cap2)
-        score3 = dartboard.compute_score(pos_dart[0],pos_dart[1])
+        score3 = dartboard.compute_score(pos_dart)
         print(score3)
         
         # On met à jour la table des scores

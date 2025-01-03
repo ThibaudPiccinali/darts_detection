@@ -70,17 +70,32 @@ async function updateData() {
 // Fonction pour redémarrer la partie
 async function restartGame() {
     const response = await fetch('/api/restart_game', { method: 'POST' });
+    const data = await response.json();
     if (response.ok) {
-        alert('Le jeu a été redémarré !');
+        alert(data.message);
         updateData(); // Mise à jour immédiate après le redémarrage
     } else {
         alert('Erreur lors du redémarrage.');
     }
 }
 
+// Fonction pour terminer la partie
+async function endGame() {
+    const response = await fetch('/api/end_game', { method: 'POST' });
+    const data = await response.json();
+    
+    if (response.ok) {
+        window.location.href = data.redirect_url;
+        alert(data.message);
+    } else {
+        alert('Erreur lors de la fin de la partie.');
+    }
+}
+
 // Configuration des événements
 function setupEventListeners() {
     document.getElementById('restartButton').addEventListener('click', restartGame);
+    document.getElementById('endGame').addEventListener('click', endGame);
 }
 
 // Initialisation

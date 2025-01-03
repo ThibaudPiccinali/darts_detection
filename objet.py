@@ -9,7 +9,6 @@ matplotlib.use('agg')
 
 class Dartboard:
     def __init__(self, radius = 21.5, sectors = [6, 13, 4, 18, 1, 20, 5, 12, 9, 14, 11, 8, 16, 7, 19, 3, 17, 2, 15, 10], radius_bullseye = 1.5/2,radius_outer_bullseye = 3.2/2,radius_double_inner=16,radius_double_outer=16.9,radius_triple_inner=9.5,radius_triple_outer=10.5):
-        ## Attention ici sectors sens particulier parce repère de la cible non usuel -> à changer
         # Distances en cm
         self.radius = radius
         self.sectors = sectors

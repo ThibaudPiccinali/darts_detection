@@ -6,9 +6,9 @@ body {
     padding: 0;
     display: flex;
     flex-direction: column; /* Empile les éléments verticalement */
-    justify-content: center; /* Centre verticalement */
+    justify-content: flex-start; /* Aligne les éléments en haut */
     align-items: center; /* Centre horizontalement */
-    height: 100vh;
+    min-height: 100vh; /* Permet de s'adapter au contenu tout en prenant au moins la hauteur de l'écran */
     text-align: center;
 }
 
@@ -55,3 +55,7 @@ input[type="text"] {
     float: left;
     width: 50%;
   }
+
+#player_textarea {
+    resize: none;
+}

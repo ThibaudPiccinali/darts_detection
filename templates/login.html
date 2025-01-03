@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Darts Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="{{ url_for('static', filename='login.js') }}" defer></script>
+</head>
+<body>
+    <h2>Qui va jouer ?</h2>
+    <p id="listPlayers"></p>
+    <textarea id="player_textarea">Renseignez un nom de joueur</textarea>
+    <br>
+    
+    <div class="panel">
+        <div class="column">
+            <button id="addplayer">Ajouter</button>
+        </div>
+        <div class="column">
+            <button id="startgame">Commencer la partie</button>
+    </div>
+</div>
+</body>
+</html>

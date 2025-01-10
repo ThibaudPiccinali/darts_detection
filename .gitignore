@@ -1,3 +1,5 @@
 cam1_images/*
 cam2_images/*
-test.py
+env_Python_3.8.10/*
+tests/*
+__pycache__/*

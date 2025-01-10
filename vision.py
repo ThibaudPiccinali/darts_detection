@@ -2,8 +2,7 @@ import cv2
 import glob
 import numpy as np
 
-import utils as utils
-import processing_pixels as pp
+import processing as proc
 
 from typing import List
 
@@ -106,8 +105,8 @@ def get_coord_dart(base_image_cam1_colors,base_image_cam1_grey,base_image_cam2_c
     ###### Première étape de detection (comparaison entre les deux images) ######
 
     # Appeler la fonction pour obtenir les différences binaires
-    diff_image_cam1 = pp.binary_diff_images(base_image_cam1_grey, dart_image_cam1_grey)
-    diff_image_cam2 = pp.binary_diff_images(base_image_cam2_grey, dart_image_cam2_grey)
+    diff_image_cam1 = proc.binary_diff_images(base_image_cam1_grey, dart_image_cam1_grey)
+    diff_image_cam2 = proc.binary_diff_images(base_image_cam2_grey, dart_image_cam2_grey)
 
     if DEBUG:
         # Afficher les résultats (différences en blanc)
@@ -134,8 +133,8 @@ def get_coord_dart(base_image_cam1_colors,base_image_cam1_grey,base_image_cam2_c
         
     ###### Filtrage (centre de masse) ######
 
-    filtered_image_cam1 = pp.filter_by_centroid(opened_image_cam1, 170)
-    filtered_image_cam2 = pp.filter_by_centroid(opened_image_cam2, 170)
+    filtered_image_cam1 = proc.filter_by_centroid(opened_image_cam1, 170)
+    filtered_image_cam2 = proc.filter_by_centroid(opened_image_cam2, 170)
 
     ###### Affichage final ######
 
@@ -186,19 +185,19 @@ def get_coord_dart(base_image_cam1_colors,base_image_cam1_grey,base_image_cam2_c
     R1 = np.eye(3)  # Rotation de la caméra 1
     T1 = np.array([[0], [0], [0]])  # Translation de la caméra 1
 
-    R2 = utils.rot_y(90)  # Rotation de la caméra 2
+    R2 = proc.rot_y(90)  # Rotation de la caméra 2
     T2 = np.array([[-30], [0], [-30]])  # Translation de la caméra 2
 
     # Triangulation pour obtenir les points 3D
-    points_2D_felchette = pp.triangulate_point(K1, K2, R1, T1, R2, T2, np.array((lowest_point_felchette_cam1)), np.array((lowest_point_felchette_cam2)))
+    points_2D_felchette = proc.triangulate_point(K1, K2, R1, T1, R2, T2, np.array((lowest_point_felchette_cam1)), np.array((lowest_point_felchette_cam2)))
 
     R = np.eye(3)  # Rotation de la caméra 1 par rapport au centre de le cible
     T = np.array([0, 0, -30])  # Translation de la caméra 1
     points_2D_felchette_reel = np.dot(R,points_2D_felchette) + T
     
     # On remet les coordonnées dans un sens cohérent vis à vis de la cible
-    points_2D_felchette_reel = np.dot(utils.rot_z(180),points_2D_felchette_reel)
-    points_2D_felchette_reel = np.dot(utils.rot_x(180),points_2D_felchette_reel) # A vérifier si ça marche /!\
+    points_2D_felchette_reel = np.dot(proc.rot_z(180),points_2D_felchette_reel)
+    points_2D_felchette_reel = np.dot(proc.rot_x(180),points_2D_felchette_reel) # A vérifier si ça marche /!\
     
     if DEBUG:
         # Affichage des résultats

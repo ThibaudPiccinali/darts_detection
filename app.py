@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, render_template,redirect, url_for, request
-from threading import Thread, Condition, Event
+from threading import Thread, Condition
 
-import utils as utils
 import vision as vision
 import objet as obj
 import time
@@ -91,7 +90,7 @@ def game(list_players):
 # Route pour récupérer les données
 @app.route('/api/data')
 def get_data():
-    if partie !=None:
+    if partie !=None and type(partie)!=int:
         response = jsonify(partie.to_dict())
         response.charset = 'utf-8'  # Spécification de l'encodage UTF-8
         return response

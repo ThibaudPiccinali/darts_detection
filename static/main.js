@@ -80,18 +80,6 @@ async function updateData() {
 }
 }
 
-// Fonction pour redémarrer la partie
-async function restartGame() {
-    const response = await fetch('/api/restart_game', { method: 'POST' });
-    const data = await response.json();
-    if (response.ok) {
-        alert(data.message);
-        updateData(); // Mise à jour immédiate après le redémarrage
-    } else {
-        alert('Erreur lors du redémarrage.');
-    }
-}
-
 // Fonction pour terminer la partie
 async function endGame() {
     const response = await fetch('/api/end_game', { method: 'POST' });
@@ -105,10 +93,33 @@ async function endGame() {
     }
 }
 
+// Fonction pour dire que la flechette a été lancée
+async function dartThrow() {
+    const response = await fetch('/api/dart_throw', { method: 'POST' });
+    const data = await response.json();
+    if (response.ok) {
+        updateData(); // Mise à jour immédiate après le redémarrage
+    } else {
+        alert('Erreur lors de la tentative de changement de fléchette.');
+    }
+}
+
+// Fonction pour changer de joueur
+async function nextPlayer() {
+    const response = await fetch('/api/next_player', { method: 'POST' });
+    const data = await response.json();
+    if (response.ok) {
+        updateData(); // Mise à jour immédiate après le redémarrage
+    } else {
+        alert('Erreur lors de la tentative de changement de joueur.');
+    }
+}
+
 // Configuration des événements
 function setupEventListeners() {
-    document.getElementById('restartButton').addEventListener('click', restartGame);
     document.getElementById('endGame').addEventListener('click', endGame);
+    document.getElementById('dartThrowButton').addEventListener('click', dartThrow);
+    document.getElementById('nextPlayerButton').addEventListener('click', nextPlayer);
 }
 
 // Initialisation

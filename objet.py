@@ -181,58 +181,6 @@ class Game:
             'can_play': self.can_play,
             'last_darts_score': self.last_darts_score
         }
-      
-    def restart(self,dartboard):
-        self.scores = [301 for i in range(len(self.players))] # Le cumul des scores
-        self.detailed_scores = [[] for i in range(len(self.players))] # Le score détaillé
-        self.last_darts_score = [-1, -1 ,-1] # les dernières fléchettes
-        self.index_current_player = 0 # Le joueur qui doit jouer
-        dartboard.save_image_dart_on_board("images/dartboard.png",[])
-             
-    def next_turn(self,cap1,cap2,dartboard):
-        print(f"C'est à {self.players[self.index_current_player].nom} de jouer")
-        last_darts_pos = [[], [] ,[]]
-        dartboard.save_image_dart_on_board("images/dartboard.png",last_darts_pos)
-        for i in range(3):
-            # 3 fléchettes
-            # Images de références 
-            images_ref = vision.get_images_both_cameras(cap1,cap2)
-            self.can_play = 1
-            
-            # L'utilisateur peut jeter sa fléchette
-            print("Jettez fléchette puis <Enter>")
-            input()
-            self.can_play = 0
-            # Images avec la fléchette 
-            images_dart = vision.get_images_both_cameras(cap1,cap2)
-            # Calcul de la position de la fléchette
-            pos_dart = vision.get_coord_dart(images_ref[0][0],images_ref[0][1],images_ref[1][0],images_ref[1][1],images_dart[0][0],images_dart[0][1],images_dart[1][0],images_dart[1][1])
-            
-            score = dartboard.compute_score(pos_dart)
-            last_darts_pos[i] = pos_dart
-            self.last_darts_score[i] = score
-            dartboard.save_image_dart_on_board("images/dartboard.png",last_darts_pos)
-        
-        # On met à jour la table des scores
-        score = self.last_darts_score[0] + self.last_darts_score[1] + self.last_darts_score[2]
-        print(f"{self.players[self.index_current_player].nom} a marqué {score} points")
-        self.scores[self.index_current_player] -= score
-        self.detailed_scores[self.index_current_player].append(score)
-        
-        # On vérifie si le joueur vient de gagner
-        if self.scores[self.index_current_player] ==0:
-            print(f"{self.players[self.index_current_player].nom} a gagné")
-            return -1
-        
-        else:
-            print(f"Fin de tour pour {self.players[self.index_current_player].nom}. Ramassez vos flechettes puis pressez <Enter>")
-            input()
-            # On passe la main au prochain joueur
-            # On réinitialise les dernières flechettes
-            self.last_darts_score = [-1, -1 ,-1]
-            
-            self.index_current_player = (self.index_current_player + 1 )%self.nb_player
-            return 1
     
     def display(self):
         for i in range(len(self.players)):

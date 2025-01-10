@@ -28,8 +28,11 @@
             <h2>Statut du Jeu</h2>
             <p id="currentPlayer">Joueur actuel : Chargement...</p>
             <p id="nbPlayers">Nombre de joueurs : Chargement...</p>
-            <div class="column"><button id="restartButton">Recommencer la partie</button></div>
-            <div class="column"><button id="endGame">Terminer la partie</button></div>
+            
+            <button id="nextPlayerButton">Joueur suivant</button>
+            <button id="dartThrowButton">Fléchette lancée</button>
+            <button id="endGame">Terminer la partie</button>
+            
             <br>
             <br>
             <img id = "canplay_indicator" src="{{ url_for('images', filename='feu_rouge.png') }}" width="254" height="100">

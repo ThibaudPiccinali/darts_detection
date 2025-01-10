@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 
 import vision as vision
 
-matplotlib.use('agg')
+matplotlib.use('Agg')
 
 class Dartboard:
     def __init__(self, radius = 21.5, sectors = [6, 13, 4, 18, 1, 20, 5, 12, 9, 14, 11, 8, 16, 7, 19, 3, 17, 2, 15, 10], radius_bullseye = 1.5/2,radius_outer_bullseye = 3.2/2,radius_double_inner=16,radius_double_outer=16.9,radius_triple_inner=9.5,radius_triple_outer=10.5):
@@ -118,8 +118,8 @@ class Dartboard:
             ax.add_patch(double_ring)
 
         # Draw inner and outer rings for bullseye
-        for self.radius, color in zip([self.radius_outer_bullseye,self.radius_bullseye], bullseye_colors):
-            bull = plt.Circle((0, 0), self.radius, color=color, zorder=2)
+        for radius, color in zip([self.radius_outer_bullseye, self.radius_bullseye], bullseye_colors):
+            bull = plt.Circle((0, 0), radius, color=color, zorder=2)
             ax.add_artist(bull)
 
         # Annotate the scores
@@ -130,10 +130,11 @@ class Dartboard:
             ax.text(x, y, str(score), ha='center', va='center', fontweight='bold', fontsize=15, color='white')
 
         # Display darts
-        for pos_dart in darts :
-            if len(pos_dart) != 0:
-                dart = plt.Circle((pos_dart), 0.5, color=dart_color, zorder=2)
-                ax.add_artist(dart)
+        if len(darts) != 0:
+            for pos_dart in darts :
+                if len(pos_dart) != 0:
+                    dart_circle = plt.Circle((pos_dart), 0.5, color=dart_color, zorder=2)
+                    ax.add_artist(dart_circle)
         
         plt.savefig(image_name, bbox_inches='tight', pad_inches=0.1, transparent=True)
 
@@ -164,7 +165,6 @@ class Game:
         self.detailed_scores = [[] for i in range(len(self.players))] # Le score détaillé
         self.index_current_player = 0 # Le joueur qui doit jouer
         self.nb_player = len(list_players)
-        self.last_darts_pos = [[], [] ,[]]
         self.last_darts_score = [-1, -1 ,-1]
         
         for player in self.players:
@@ -177,25 +177,27 @@ class Game:
             'detailed_scores': self.detailed_scores,
             'index_current_player': self.index_current_player,
             'nb_player': self.nb_player,
-            'last_darts_pos': self.last_darts_pos,
             'last_darts_score': self.last_darts_score
         }
       
-    def restart(self):
+    def restart(self,dartboard):
         self.scores = [301 for i in range(len(self.players))] # Le cumul des scores
         self.detailed_scores = [[] for i in range(len(self.players))] # Le score détaillé
+        self.last_darts_score = [-1, -1 ,-1] # les dernières fléchettes
         self.index_current_player = 0 # Le joueur qui doit jouer
+        dartboard.save_image_dart_on_board("images/dartboard.png",[])
              
     def next_turn(self,cap1,cap2,dartboard):
         print(f"C'est à {self.players[self.index_current_player].nom} de jouer")
-        
+        last_darts_pos = [[], [] ,[]]
+        dartboard.save_image_dart_on_board("images/dartboard.png",last_darts_pos)
         for i in range(3):
             # 3 fléchettes
             pos_dart = vision.get_coord_dart(cap1,cap2)
             score = dartboard.compute_score(pos_dart)
-            self.last_darts_pos[i] = pos_dart
+            last_darts_pos[i] = pos_dart
             self.last_darts_score[i] = score
-            dartboard.save_image_dart_on_board("images/dartboard.png",pos_dart)
+            dartboard.save_image_dart_on_board("images/dartboard.png",last_darts_pos)
         
         # On met à jour la table des scores
         score = self.last_darts_score[0] + self.last_darts_score[1] + self.last_darts_score[2]
@@ -214,7 +216,6 @@ class Game:
             # On passe la main au prochain joueur
             # On réinitialise les dernières flechettes
             self.last_darts_score = [-1, -1 ,-1]
-            self.last_darts_pos = [[], [] ,[]]
             
             self.index_current_player = (self.index_current_player + 1 )%self.nb_player
             return 1

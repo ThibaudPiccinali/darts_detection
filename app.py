@@ -10,46 +10,41 @@ import cv2
 app = Flask(__name__)
 
 partie = None
+cible = None
 
 def game(list_player_names):
-    # cap1, cap2 = vision.open_stream([0, 1]) # Les caméras doivent être sur deux ports différents
+    
+    cap1, cap2 = vision.open_stream([1, 0]) # Les caméras doivent être sur deux ports différents
+    # Necessaire parce que doit laisser le temps à la caméra de bien de setup
+    cam1 = vision.get_frame(cap1)
+    time.sleep(1) # necessaire pour avoir laisser le temps à la cam de changer (?)
+    cam2 = vision.get_frame(cap2)
+    time.sleep(1)
+    time.sleep(5)
+    
+    # Setup utilisé
+    global cible
+    cible = obj.Dartboard()
 
-    # # Necessaire parce que doit laisser le temps à la caméra de bien de setup
-    # cam1 = vision.get_frame(cap1)
-    # time.sleep(1) # necessaire pour avoir laisser le temps à la cam de changer (?)
-    # cam2 = vision.get_frame(cap2)
-    # time.sleep(1)
-
-    # cv2.imshow('CAM1', cam1)
-    # cv2.imshow('CAM2', cam2)
-    # cv2.waitKey(0)
-    # cv2.destroyAllWindows()
     # Création des joueurs
     liste_joueurs = []
      
     for name in list_player_names:
         liste_joueurs.append(obj.Player(1,name))
-
-    # Setup utilisé
-    cible = obj.Dartboard()
-
-    #cible.save_image_dart_on_board("images/dartboard.png",[])
+    
     global partie 
     partie = obj.Game(liste_joueurs)
 
-    # exit = 1
-
-    # while exit != -1:
-    #     # On envoie les données au serveur
-    #     exit = partie.next_turn(cap1,cap2,cible)
-        
-
+    partie.next_turn(cap1,cap2,cible)
+     
 # Route pour récupérer les données
 @app.route('/api/data')
 def get_data():
-    response = jsonify(partie.to_dict())
-    response.charset = 'utf-8'  # Spécification de l'encodage UTF-8
-    return response
+    if partie !=None:
+        response = jsonify(partie.to_dict())
+        response.charset = 'utf-8'  # Spécification de l'encodage UTF-8
+        return response
+    return jsonify({"message": "Partie non commencée"}), 400
 
 # Route pour démarer la partie
 @app.route('/api/start_game', methods=['POST'])
@@ -59,13 +54,18 @@ def start_game():
     if len(list_players) == 1 and list_players[0] == "":
         return jsonify({"message": "Pas de joueurs pour commmencer"}), 400
     # On lance un thread pour gérer la partie
+    
+    global partie # A modifier
+    partie = 1  # A modifier
+    
     threading.Thread(target=game,args=(list_players,),  daemon=True).start()
     return jsonify({"message": "Jeu démarré", "redirect_url": url_for('main_page')}), 200
 
 # Route pour redémarer la partie
 @app.route('/api/restart_game', methods=['POST'])
 def restart_game():
-    partie.restart()
+    global cible
+    partie.restart(cible)
     return jsonify({"message": "Jeu redémarré"}), 200
 
 # Route pour terminer la partie

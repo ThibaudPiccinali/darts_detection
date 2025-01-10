@@ -70,18 +70,23 @@ def get_intrinsix_matrix(path_images):
     # K est la matrice intrinsèque
     return K
 
-
 def get_coord_dart(cap1,cap2,DEBUG=False):
-    ###### Capture (et mise en forme) des images ######
-    # Cam 1
+    ###### Capture des images ######
     base_image_cam1_colors = get_frame(cap1)
+    base_image_cam2_colors = get_frame(cap2)
+    
+    if DEBUG:
+        cv2.imshow('Image de base cam1', base_image_cam1_colors.astype(np.uint8))
+        cv2.imshow('Image de base cam2', base_image_cam2_colors.astype(np.uint8))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    ###### Mise en forme des images ######
     base_image_cam1 = cv2.cvtColor(base_image_cam1_colors, cv2.COLOR_BGR2GRAY)
     # Convertir les images en format compatible (unsigned char)
     base_image_cam1 = np.array(base_image_cam1,dtype=np.uint8)
     base_image_cam1_grey = np.stack([base_image_cam1] * 3, axis=-1)
 
-    # Cam 2
-    base_image_cam2_colors = get_frame(cap2)
     base_image_cam2 = cv2.cvtColor(base_image_cam2_colors, cv2.COLOR_BGR2GRAY)
     # Convertir les images en format compatible (unsigned char)
     base_image_cam2 = np.array(base_image_cam2,dtype=np.uint8)
@@ -90,6 +95,8 @@ def get_coord_dart(cap1,cap2,DEBUG=False):
     if DEBUG:
         cv2.imshow('Image de base cam1 en niveau de gris', base_image_cam1_grey.astype(np.uint8))
         cv2.imshow('Image de base cam2 en niveau de gris', base_image_cam2_grey.astype(np.uint8))
+        cv2.waitKey(0)
+        cv2.destroyAllWindows() 
     
     ## On attend que l'utilisateur lance la flechette
     print("Capture de l'image de référence effectuée. Lancez votre flechette puis pressez <Enter>")
@@ -110,7 +117,9 @@ def get_coord_dart(cap1,cap2,DEBUG=False):
     if DEBUG:
         cv2.imshow('Image cam1 avec la flechette en niveau de gris', dart_image_cam1_grey.astype(np.uint8))
         cv2.imshow('Image cam2 avec la flechette en niveau de gris', dart_image_cam2_grey.astype(np.uint8))
-    
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+            
     ###### Première étape de detection (comparaison entre les deux images) ######
 
     # Appeler la fonction pour obtenir les différences binaires
@@ -121,7 +130,9 @@ def get_coord_dart(cap1,cap2,DEBUG=False):
         # Afficher les résultats (différences en blanc)
         cv2.imshow('diff_image_cam1', diff_image_cam1.astype(np.uint8))
         cv2.imshow('diff_image_cam2', diff_image_cam2.astype(np.uint8))
-    
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+            
     diff_image_cam1 = np.uint8(diff_image_cam1)
     diff_image_cam2 = np.uint8(diff_image_cam2)
 
@@ -135,7 +146,9 @@ def get_coord_dart(cap1,cap2,DEBUG=False):
     if DEBUG:
         cv2.imshow('opening cam 1', opened_image_cam1.astype(np.uint8))    
         cv2.imshow('opening cam 2', opened_image_cam2.astype(np.uint8))
-
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        
     ###### Filtrage (centre de masse) ######
 
     filtered_image_cam1 = pp.filter_by_centroid(opened_image_cam1, 170)
@@ -155,7 +168,9 @@ def get_coord_dart(cap1,cap2,DEBUG=False):
     if DEBUG:
         cv2.imshow('Detection cam 1',dart_image_cam1_colors)    
         cv2.imshow('Detection cam 2',dart_image_cam2_colors)
-
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        
     ###### Identification de la pointe de la flechette ######
 
     # Trouver les coordonnées des pixels blancs (255)
@@ -173,7 +188,9 @@ def get_coord_dart(cap1,cap2,DEBUG=False):
         print(f"Le point le plus bas sur la caméra 2 est à la position : {lowest_point_felchette_cam2}")
         cv2.imshow('Pointe flechette cam 1',cv2.circle(dart_image_cam1_colors, (lowest_point_felchette_cam1[0], lowest_point_felchette_cam1[1]), 5, [0,255,0], -1))    
         cv2.imshow('Pointe flechette cam 2',cv2.circle(dart_image_cam2_colors, (lowest_point_felchette_cam2[0], lowest_point_felchette_cam2[1]), 5, [0,255,0], -1))
-
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+        
     ##### Calcul de la position réelle associée ######
 
     # Matrices intrinsèques des caméras
@@ -197,7 +214,8 @@ def get_coord_dart(cap1,cap2,DEBUG=False):
     points_2D_felchette_reel = np.dot(R,points_2D_felchette) + T
     
     # On remet les coordonnées dans un sens cohérent vis à vis de la cible
-    points_2D_felchette_reel = np.dot(utils.rot_z(180),points_2D_felchette_reel) # A vérifier si ça marche /!\
+    points_2D_felchette_reel = np.dot(utils.rot_z(180),points_2D_felchette_reel)
+    points_2D_felchette_reel = np.dot(utils.rot_x(180),points_2D_felchette_reel) # A vérifier si ça marche /!\
     
     if DEBUG:
         # Affichage des résultats

@@ -70,7 +70,8 @@ def get_intrinsix_matrix(path_images):
     # K est la matrice intrinsèque
     return K
 
-def get_coord_dart(cap1,cap2,DEBUG=False):
+def get_images_both_cameras(cap1,cap2,DEBUG=False):
+    
     ###### Capture des images ######
     base_image_cam1_colors = get_frame(cap1)
     base_image_cam2_colors = get_frame(cap2)
@@ -98,27 +99,9 @@ def get_coord_dart(cap1,cap2,DEBUG=False):
         cv2.waitKey(0)
         cv2.destroyAllWindows() 
     
-    ## On attend que l'utilisateur lance la flechette
-    print("Capture de l'image de référence effectuée. Lancez votre flechette puis pressez <Enter>")
-    input()
+    return [[base_image_cam1_colors,base_image_cam1_grey],[base_image_cam2_colors,base_image_cam2_grey]]
 
-    dart_image_cam1_colors = get_frame(cap1)
-    dart_image_cam1 = cv2.cvtColor(dart_image_cam1_colors, cv2.COLOR_BGR2GRAY)
-    # Convertir les images en format compatible (unsigned char)
-    dart_image_cam1 = np.array(dart_image_cam1,dtype=np.uint8)
-    dart_image_cam1_grey = np.stack([dart_image_cam1] * 3, axis=-1)
-
-    dart_image_cam2_colors = get_frame(cap2)
-    dart_image_cam2 = cv2.cvtColor(dart_image_cam2_colors, cv2.COLOR_BGR2GRAY)
-    # Convertir les images en format compatible (unsigned char)
-    dart_image_cam2 = np.array(dart_image_cam2,dtype=np.uint8)
-    dart_image_cam2_grey = np.stack([dart_image_cam2] * 3, axis=-1)
-    
-    if DEBUG:
-        cv2.imshow('Image cam1 avec la flechette en niveau de gris', dart_image_cam1_grey.astype(np.uint8))
-        cv2.imshow('Image cam2 avec la flechette en niveau de gris', dart_image_cam2_grey.astype(np.uint8))
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+def get_coord_dart(base_image_cam1_colors,base_image_cam1_grey,base_image_cam2_colors,base_image_cam2_grey,dart_image_cam1_colors,dart_image_cam1_grey,dart_image_cam2_colors,dart_image_cam2_grey,DEBUG=False):
             
     ###### Première étape de detection (comparaison entre les deux images) ######
 

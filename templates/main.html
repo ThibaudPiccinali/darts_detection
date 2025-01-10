@@ -31,6 +31,9 @@
             <div class="column"><button id="restartButton">Recommencer la partie</button></div>
             <div class="column"><button id="endGame">Terminer la partie</button></div>
             <br>
+            <br>
+            <img id = "canplay_indicator" src="{{ url_for('images', filename='feu_rouge.png') }}" width="254" height="100">
+            <br>
             <table>
                 <thead>
                     <tr>
@@ -42,6 +45,7 @@
                 <tbody id="3dartsTable">
                     <!-- Table des 3 dernières flechettes sera mise à jour ici -->
                 </tbody>
+                
             </table>
         </div>
         <div class="column">

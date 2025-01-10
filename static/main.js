@@ -67,6 +67,16 @@ async function updateData() {
         const dartboardImage = document.getElementById("dartboardImage");
         const timestamp = new Date().getTime(); // Timestamp unique
         dartboardImage.src = `/images/dartboard.png?ts=${timestamp}`;
+
+        // Mise à jour du feu tricolor
+        const feu_tricolor = document.getElementById("canplay_indicator");
+        if (data.can_play === 1){
+            feu_tricolor.src = `/images/feu_vert.png`;
+        }
+        else{
+            feu_tricolor.src = `/images/feu_rouge.png`;
+        }
+
 }
 }
 

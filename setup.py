@@ -2,7 +2,7 @@ import vision as vision
 import time
 import cv2
 
-cap1, cap2 = vision.open_stream([1, 0]) # Les caméras doivent être sur deux ports différents
+cap1, cap2 = vision.open_stream([2, 0]) # Les caméras doivent être sur deux ports différents
 
 # Necessaire parce que doit laisser le temps à la caméra de bien de setup
 cam1 = vision.get_frame(cap1)

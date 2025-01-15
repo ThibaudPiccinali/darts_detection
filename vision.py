@@ -71,6 +71,11 @@ def get_intrinsix_matrix(path_images):
 
 def get_images_both_cameras(cap1,cap2,DEBUG=False):
     
+    ### Permet de forcer la viandage du cache (technique pas terrible mais fonctionnelle)
+    for _ in range(5):
+        cap1.read()
+        cap2.read()
+    
     ###### Capture des images ######
     base_image_cam1_colors = get_frame(cap1)
     base_image_cam2_colors = get_frame(cap2)
@@ -109,7 +114,16 @@ def get_coord_dart(base_image_cam1_colors,base_image_cam1_grey,base_image_cam2_c
     diff_image_cam2 = proc.binary_diff_images(base_image_cam2_grey, dart_image_cam2_grey)
 
     if DEBUG:
-        # Afficher les résultats (différences en blanc)
+        # Afficher les résultats
+        cv2.imshow('base_image_cam1_colors', base_image_cam1_colors.astype(np.uint8))
+        cv2.imshow('base_image_cam1_grey', base_image_cam1_grey.astype(np.uint8))
+        cv2.imshow('base_image_cam2_colors', base_image_cam2_colors.astype(np.uint8))
+        cv2.imshow('base_image_cam2_grey', base_image_cam2_grey.astype(np.uint8))
+        cv2.imshow('dart_image_cam1_colors', dart_image_cam1_colors.astype(np.uint8))
+        cv2.imshow('dart_image_cam1_grey', dart_image_cam1_grey.astype(np.uint8))
+        cv2.imshow('dart_image_cam2_colors', dart_image_cam2_colors.astype(np.uint8))
+        cv2.imshow('dart_image_cam2_grey', dart_image_cam2_grey.astype(np.uint8))
+        #  (différences en blanc)
         cv2.imshow('diff_image_cam1', diff_image_cam1.astype(np.uint8))
         cv2.imshow('diff_image_cam2', diff_image_cam2.astype(np.uint8))
         cv2.waitKey(0)

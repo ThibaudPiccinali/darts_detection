@@ -15,14 +15,6 @@ condition_next_player = Condition()
 
 def game(list_players):
     
-    # Setup nécessaire des caméras
-    cap1, cap2 = vision.open_stream([2, 0]) # Les caméras doivent être sur deux ports différents
-    # Necessaire parce que doit laisser le temps à la caméra de bien de setup
-    cam1 = vision.get_frame(cap1)
-    time.sleep(1) # necessaire pour avoir laisser le temps à la cam de changer (?)
-    cam2 = vision.get_frame(cap2)
-    time.sleep(1)
-    
     # Création des joueurs
     liste_joueurs = []
     for name in list_players:
@@ -31,6 +23,14 @@ def game(list_players):
     global partie, cible
     partie = obj.Game(liste_joueurs)
     cible = obj.Dartboard()
+    
+    # Setup nécessaire des caméras
+    cap1, cap2 = vision.open_stream([2, 0]) # Les caméras doivent être sur deux ports différents
+    # Necessaire parce que doit laisser le temps à la caméra de bien de setup
+    cam1 = vision.get_frame(cap1)
+    time.sleep(1) # necessaire pour avoir laisser le temps à la cam de changer (?)
+    cam2 = vision.get_frame(cap2)
+    time.sleep(1)
     
     while(True):
         print(f"C'est à {partie.players[partie.index_current_player].nom} de jouer")

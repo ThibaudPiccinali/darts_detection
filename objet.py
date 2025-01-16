@@ -159,9 +159,9 @@ class Player:
         }
             
 class Game:
-    def __init__(self, list_players):
+    def __init__(self, list_players,game_mode):
         self.players = list_players
-        self.scores = [301 for i in range(len(self.players))] # Le cumul des scores
+        self.scores = [int(game_mode) for i in range(len(self.players))] # Le cumul des scores
         self.detailed_scores = [[] for i in range(len(self.players))] # Le score détaillé
         self.index_current_player = 0 # Le joueur qui doit jouer
         self.can_play = 0 # Est ce que le joueur peut lancer sa fléchette (0 non 1 oui)

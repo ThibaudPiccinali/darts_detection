@@ -13,7 +13,7 @@ cible = None
 condition_next_dart = Condition()
 condition_next_player = Condition()
 
-def game(list_players):
+def game(list_players,game_mode):
     
     # Création des joueurs
     liste_joueurs = []
@@ -21,7 +21,7 @@ def game(list_players):
         liste_joueurs.append(obj.Player(1,name))
     
     global partie, cible
-    partie = obj.Game(liste_joueurs)
+    partie = obj.Game(liste_joueurs,game_mode)
     cible = obj.Dartboard()
     
     # Setup nécessaire des caméras
@@ -103,12 +103,12 @@ def start_game():
     list_players = request_data['name_players'].split(", ")
     if len(list_players) == 1 and list_players[0] == "":
         return jsonify({"message": "Pas de joueurs pour commmencer"}), 400
-    
+    game_mode = request_data['game_mode']
     # On lance la partie
     
     global partie,thread
     partie = 1 # Permet de directement passer à la page d'après même si la partie n'est pas correctement initialisé
-    thread = Thread(target=game,args=(list_players,),  daemon=True)
+    thread = Thread(target=game,args=(list_players,game_mode,),  daemon=True)
     thread.start()
     
     return jsonify({"message": "Jeu démarré", "redirect_url": url_for('main_page')}), 200

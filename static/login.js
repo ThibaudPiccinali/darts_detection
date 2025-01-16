@@ -16,7 +16,7 @@ async function startGame() {
     const response = await fetch('/api/start_game', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name_players: document.getElementById('listPlayers').textContent }) // Données à envoyer
+        body: JSON.stringify({ name_players: document.getElementById('listPlayers').textContent, game_mode: document.getElementById('gamemode').value}) // Données à envoyer
     }) 
     const data = await response.json();
     if (response.ok) {

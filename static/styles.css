@@ -56,6 +56,17 @@ input[type="text"] {
     width: 50%;
   }
 
+.column3 {
+    float: left;
+    width: 33%;
+  }
+
 #player_textarea {
     resize: none;
+}
+
+.score_dart {
+    resize: none;
+    width: 20px;
+    height: 20px
 }

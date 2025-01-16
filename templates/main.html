@@ -48,8 +48,23 @@
                 <tbody id="3dartsTable">
                     <!-- Table des 3 dernières flechettes sera mise à jour ici -->
                 </tbody>
-                
             </table>
+            <br>
+            <div class="column3">
+                    <textarea class="score_dart" id="score_dart1" maxlength="2">--</textarea>
+                    <br>
+                    <button id="new_score_d1">Modifier Score Fléchette 1</button>
+            </div>
+            <div class="column3">
+                    <textarea class="score_dart" id="score_dart2" maxlength="2">--</textarea>
+                    <br>
+                    <button id="new_score_d2">Modifier Score Fléchette 2</button>
+                </div>
+            <div class="column3">
+                    <textarea class="score_dart" id="score_dart3" maxlength="2">--</textarea>
+                    <br>
+                    <button id="new_score_d3">Modifier Score Fléchette 3</button>
+            </div>
         </div>
         <div class="column">
             <img id = "dartboardImage" src="{{ url_for('images', filename='dartboard.png') }}" alt="dartboard image" width="600" height="600">

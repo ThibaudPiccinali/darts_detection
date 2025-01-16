@@ -59,7 +59,12 @@ def game(list_players,game_mode):
             last_darts_pos[i] = pos_dart
             partie.last_darts_score[i] = score
             cible.save_image_dart_on_board("images/dartboard.png",last_darts_pos)
-            
+        
+        with condition_next_player:  # Acquiert la condition pour attendre
+                condition_next_player.wait()  # Attend passivement une notification
+                
+        print("Fléchettes ramassées")
+        
         # On met à jour la table des scores
         score = partie.last_darts_score[0] + partie.last_darts_score[1] + partie.last_darts_score[2]
         print(f"{partie.players[partie.index_current_player].nom} a marqué {score} points")
@@ -73,11 +78,6 @@ def game(list_players,game_mode):
             
         else:
             print(f"Fin de tour pour {partie.players[partie.index_current_player].nom}. Ramassez vos flechettes")
-            
-            with condition_next_player:  # Acquiert la condition pour attendre
-                condition_next_player.wait()  # Attend passivement une notification
-                
-            print("Fléchettes ramassées")
             
             # On réinitialise les dernières flechettes et la cible
             partie.last_darts_score = [-1, -1 ,-1]
@@ -112,6 +112,18 @@ def start_game():
     thread.start()
     
     return jsonify({"message": "Jeu démarré", "redirect_url": url_for('main_page')}), 200
+
+# Route pour changer le score des fléchettes
+@app.route('/api/change_score_dart', methods=['POST'])
+def change_score_dart():
+    request_data = request.get_json()
+    if not request_data['new_value'].isnumeric():
+        return jsonify({"message": "Score doit être numérique"}), 400
+    if not (int(request_data['new_value']) >= 0 and int(request_data['new_value']) <= 60):
+        return jsonify({"message": "Score doit être compris entre 0 et 60"}), 400
+    global partie
+    partie.last_darts_score[int(request_data['dart_number'])-1] = int(request_data['new_value'])
+    return jsonify({"message": "Score changé"}), 200
 
 # Route pour terminer la partie
 @app.route('/api/end_game', methods=['POST'])

@@ -109,9 +109,63 @@ async function nextPlayer() {
     const response = await fetch('/api/next_player', { method: 'POST' });
     const data = await response.json();
     if (response.ok) {
+        document.getElementById('score_dart1').value = '--'
+        document.getElementById('score_dart2').value = '--'
+        document.getElementById('score_dart3').value = '--'
         updateData(); // Mise à jour immédiate après le redémarrage
     } else {
         alert('Erreur lors de la tentative de changement de joueur.');
+    }
+}
+
+// Fonction pour changer le score de la fléchette 1
+async function change_score_d1() {
+    const response = await fetch('/api/change_score_dart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dart_number: "1", new_value: document.getElementById('score_dart1').value}) // Données à envoyer
+    }) 
+    const data = await response.json();
+    if (response.ok) {
+        if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+        }
+    } else {
+        alert(data.message);
+    }
+}
+
+// Fonction pour changer le score de la fléchette 2
+async function change_score_d2() {
+    const response = await fetch('/api/change_score_dart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dart_number: "2", new_value: document.getElementById('score_dart2').value}) // Données à envoyer
+    }) 
+    const data = await response.json();
+    if (response.ok) {
+        if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+        }
+    } else {
+        alert(data.message);
+    }
+}
+
+// Fonction pour changer le score de la fléchette 3
+async function change_score_d3() {
+    const response = await fetch('/api/change_score_dart', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dart_number: "3", new_value: document.getElementById('score_dart3').value}) // Données à envoyer
+    }) 
+    const data = await response.json();
+    if (response.ok) {
+        if (data.redirect_url) {
+            window.location.href = data.redirect_url;
+        }
+    } else {
+        alert(data.message);
     }
 }
 
@@ -120,6 +174,9 @@ function setupEventListeners() {
     document.getElementById('endGame').addEventListener('click', endGame);
     document.getElementById('dartThrowButton').addEventListener('click', dartThrow);
     document.getElementById('nextPlayerButton').addEventListener('click', nextPlayer);
+    document.getElementById('new_score_d1').addEventListener('click', change_score_d1);
+    document.getElementById('new_score_d2').addEventListener('click', change_score_d2);
+    document.getElementById('new_score_d3').addEventListener('click', change_score_d3);
 }
 
 // Initialisation

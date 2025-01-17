@@ -9,6 +9,10 @@ app = Flask(__name__)
 
 partie = None
 cible = None
+cap1 = None
+cap2 = None
+thread = None
+end_thread = False
 
 condition_next_dart = Condition()
 condition_next_player = Condition()
@@ -20,7 +24,7 @@ def game(list_players,game_mode):
     for name in list_players:
         liste_joueurs.append(obj.Player(1,name))
     
-    global partie, cible
+    global partie, cible,cap1,cap2,end_thread
     partie = obj.Game(liste_joueurs,game_mode)
     cible = obj.Dartboard()
     
@@ -32,7 +36,7 @@ def game(list_players,game_mode):
     cam2 = vision.get_frame(cap2)
     time.sleep(1)
     
-    while(True):
+    while(True and not end_thread):
         print(f"C'est à {partie.players[partie.index_current_player].nom} de jouer")
         last_darts_pos = [[], [] ,[]]
         cible.save_image_dart_on_board("images/dartboard.png",last_darts_pos)
@@ -47,6 +51,9 @@ def game(list_players,game_mode):
             
             with condition_next_dart:  # Acquiert la condition pour attendre
                 condition_next_dart.wait()  # Attend passivement une notification
+            
+            if (end_thread):# si l'utilisateur a demandé de terminer la partie on sort ici
+                return -1 
                 
             print("Fléchette lancée")
             partie.can_play = 0
@@ -61,7 +68,10 @@ def game(list_players,game_mode):
             cible.save_image_dart_on_board("images/dartboard.png",last_darts_pos)
         
         with condition_next_player:  # Acquiert la condition pour attendre
-                condition_next_player.wait()  # Attend passivement une notification
+            condition_next_player.wait()  # Attend passivement une notification
+        
+        if (end_thread):# si l'utilisateur a demandé de terminer la partie on sort ici
+            return -1   
                 
         print("Fléchettes ramassées")
         
@@ -106,7 +116,8 @@ def start_game():
     game_mode = request_data['game_mode']
     # On lance la partie
     
-    global partie,thread
+    global partie,thread,end_thread
+    end_thread = False
     partie = 1 # Permet de directement passer à la page d'après même si la partie n'est pas correctement initialisé
     thread = Thread(target=game,args=(list_players,game_mode,),  daemon=True)
     thread.start()
@@ -128,7 +139,18 @@ def change_score_dart():
 # Route pour terminer la partie
 @app.route('/api/end_game', methods=['POST'])
 def end_game():
-    global partie
+    global partie,end_thread
+    end_thread = True
+    
+    # On notifie le thread s'il est bloqué
+    with condition_next_dart:
+        with condition_next_player:
+            condition_next_dart.notify_all()
+            condition_next_player.notify_all()
+    
+    thread.join()
+    cap1.release()
+    cap2.release()
     partie = None
     return jsonify({"message": "Jeu terminé", "redirect_url": url_for('index')}), 200
 

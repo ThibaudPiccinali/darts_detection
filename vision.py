@@ -13,7 +13,8 @@ def open_stream(list_index : List[int]):
         cap[j] = cv2.VideoCapture(i)
         if not cap[j].isOpened():
             print(f"Erreur : impossible d'ouvrir la caméra {i}")
-        # else:
+        else:
+            cap[j].set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
         #     # Forcer la résolution à 1280x720
         #     cap[j].set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         #     cap[j].set(cv2.CAP_PROP_FRAME_HEIGHT, 720)

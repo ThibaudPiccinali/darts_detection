@@ -114,6 +114,10 @@ def get_coord_dart(base_image_cam1_colors,base_image_cam1_grey,base_image_cam2_c
     diff_image_cam1 = proc.binary_diff_images(base_image_cam1_grey, dart_image_cam1_grey)
     diff_image_cam2 = proc.binary_diff_images(base_image_cam2_grey, dart_image_cam2_grey)
 
+    if (not np.any(diff_image_cam1 == 255)) or (not np.any(diff_image_cam2 == 255)):
+        # S'il y a au moins une des cams qui n'a pas noté de différence, on renvoit des coordonées par défault
+        return np.array([None,None])
+    
     if DEBUG:
         # Afficher les résultats
         cv2.imshow('base_image_cam1_colors', base_image_cam1_colors.astype(np.uint8))

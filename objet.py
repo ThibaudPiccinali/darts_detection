@@ -20,6 +20,11 @@ class Dartboard:
         self.radius_triple_outer = radius_triple_outer
     
     def compute_score(self,pos_dart):
+        
+        # Gestion du cas d'erreur ou aucun changement n'a été constaté
+        if (pos_dart[0] == None and pos_dart[1] == None):
+            return 0
+        
         # Calcul de la distance au centre
         r = math.sqrt(pos_dart[0]**2 + pos_dart[1]**2)
 
@@ -132,7 +137,7 @@ class Dartboard:
         # Display darts
         if len(darts) != 0:
             for pos_dart in darts :
-                if len(pos_dart) != 0:
+                if len(pos_dart) != 0 and (pos_dart[0] !=None and pos_dart[1] !=None):
                     dart_circle = plt.Circle((pos_dart), 0.5, color=dart_color, zorder=2)
                     ax.add_artist(dart_circle)
         

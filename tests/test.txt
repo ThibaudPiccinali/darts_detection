@@ -1,0 +1,17 @@
+Le point le plus bas sur la caméra 1 est à la position : (350, 261)
+Le point le plus bas sur la caméra 2 est à la position : (212, 239)
+Coordonnées de la flechette (repère cam1) :
+[ 0.68704593  0.19057484 40.140503  ]
+Coordonnées de la flechette (repère centre de la cible) :
+-0.6870459318161011 -10.1405029296875
+
+Score 9 (T3)
+
+P1
+[[459.44732253   0.         339.56888157   0.        ]
+ [  0.         462.62071383 222.54341588   0.        ]
+ [  0.           0.           1.           0.        ]]
+P2
+[[-360.127525  0.00000000  458.809171 -24568.1009]
+ [-194.388164  462.447820  1.19028421e-14 -5.83164491e+03]
+ [-1.00000000e+00  0.00000000e+00  6.12323400e-17 -3.00000000e+01]]

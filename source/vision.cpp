@@ -2,13 +2,9 @@
 #include <iostream>
 #include "processing.h"
 
-std::array<double, 2> get_coord_dart(
+std::vector<double> get_coord_dart(
     const cv::Mat& diff_image_cam1, const cv::Mat& diff_image_cam2,
     bool DEBUG = false) {
-    
-    if (cv::countNonZero(diff_image_cam1) == 0 || cv::countNonZero(diff_image_cam2) == 0) {
-        return {std::nan(""), std::nan("")};
-    }
 
     if (DEBUG) {
         cv::imshow("diff_image_cam1", diff_image_cam1);
@@ -73,6 +69,38 @@ std::array<double, 2> get_coord_dart(
     }
 
     // Extraction des coordonnées
-    std::array<double, 2> coords = {point3D_real.at<double>(0, 0), point3D_real.at<double>(0, 2)};
+    std::vector<double> coords = {point3D_real.at<double>(0, 0), point3D_real.at<double>(0, 2)};
     return coords;
+}
+
+std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
+    
+    cv::Mat image_cam1_colors,image_cam2_colors;
+    cv::Mat image_cam1_gray,image_cam2_gray;
+
+    // Ouvre la première caméra
+    cv::VideoCapture cap1(c1);
+    if (!cap1.isOpened()) {
+        std::cerr << "Erreur : Impossible d'ouvrir la première caméra !" << std::endl;
+        throw std::runtime_error("Impossible d'ouvrir la première caméra");
+    }
+    cap1 >> image_cam1_colors;
+    image_cam1_colors = cropBottomTwoThirds(image_cam1_colors);
+    cap1.release();  // On est obligé de fermer le flux sinon ça ne marche pas (Python ça marchait mieux)
+        
+    // Ouvre la deuxième caméra
+    cv::VideoCapture cap2(c2);
+    if (!cap2.isOpened()) {
+        std::cerr << "Erreur : Impossible d'ouvrir la deuxième caméra !" << std::endl;
+        throw std::runtime_error("Impossible d'ouvrir la première caméra");
+    }
+    cap2 >> image_cam2_colors;
+    image_cam2_colors = cropBottomTwoThirds(image_cam2_colors);
+    cap2.release(); 
+        
+    // Conversion en nuance de gris
+    cv::cvtColor(image_cam1_colors, image_cam1_gray, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(image_cam2_colors, image_cam2_gray, cv::COLOR_BGR2GRAY);
+
+    return std::make_pair(image_cam1_gray, image_cam2_gray);
 }

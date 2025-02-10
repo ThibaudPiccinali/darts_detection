@@ -2,6 +2,7 @@
 #define OBJECT_H
 
 #include <vector>
+#include <opencv2/opencv.hpp>
 
 class Dartboard {
 public:
@@ -13,9 +14,9 @@ public:
               double radius_triple_inner = 9.5, double radius_triple_outer = 10.5);
 
     // Méthodes
-    int compute_score(const std::vector<double>& pos_dart);
+    int compute_score(std::vector<double> pos_dart);
+    void save_image_dart_on_board(const std::string& image_name, const std::vector<std::vector<float>>& darts);
 
-private:
     // Variables membres
     double radius;
     std::vector<int> sectors;
@@ -27,4 +28,34 @@ private:
     double radius_triple_outer;
 };
 
+class Player{
+
+public:
+    // Constructeur
+    Player(int id, const std::string& nom);
+
+    // Méthodes
+    void display();
+    std::unordered_map<std::string, std::string> to_dict() const;
+
+    // Variables membres
+    int id;
+    const std::string& nom;
+    int nb_party_played;
+};
+
+class Game {
+    public:
+        Game(std::vector<Player>& list_players, int game_mode);
+        std::unordered_map<std::string, std::vector<std::unordered_map<std::string, std::string>>> to_dict() const;
+        void display() const;
+
+        std::vector<Player> players;
+        std::vector<int> scores;
+        std::vector<std::vector<int>> detailed_scores;
+        int index_current_player;
+        int can_play;
+        int nb_player;
+        std::vector<int> last_darts_score;
+    };
 #endif

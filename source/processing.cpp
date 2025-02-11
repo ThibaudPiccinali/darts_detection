@@ -7,7 +7,7 @@ cv::Mat binary_diff_images(const cv::Mat& pixels_list_a, const cv::Mat& pixels_l
 
     cv::Mat diff, result;
     cv::absdiff(pixels_list_a, pixels_list_b, diff);  // Différence absolue pixel par pixel
-    cv::threshold(diff, result, 50, 255, cv::THRESH_BINARY);  // Seuillage
+    cv::threshold(diff, result, 45, 255, cv::THRESH_BINARY);  // Seuillage
 
     return result;
 }

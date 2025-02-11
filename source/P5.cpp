@@ -4,7 +4,7 @@
 
 int main() {
     // Exemple de coordonnées pour pos_dart
-    std::vector<double> pos_dart = {-0.687046, -10.1405}; // Position (x, y)
+    std::vector<double> pos_dart = {-10.4271, 14.8793}; // Position (x, y)
 
     // Création de l'objet DartsGame
     Dartboard board;

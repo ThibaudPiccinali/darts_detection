@@ -189,8 +189,8 @@ void gestion_camera(void){
         while (1){
             // Capture des images courantes
             std::pair<cv::Mat, cv::Mat> images_courantes_gray = get_gray_images_both_cameras(CAP1, CAP2);
-            cv::Mat dart_image_cam1_gray = images_ref_gray.first;
-            cv::Mat dart_image_cam2_gray = images_ref_gray.second;
+            dart_image_cam1_gray = images_courantes_gray.first;
+            dart_image_cam2_gray = images_courantes_gray.second;
             
             // Calcul des différences
             diff_image_cam1 = binary_diff_images(base_image_cam1_gray, dart_image_cam1_gray);
@@ -198,8 +198,9 @@ void gestion_camera(void){
             // On les compte
             count_cam1 = cv::countNonZero(diff_image_cam1);
             count_cam2 = cv::countNonZero(diff_image_cam2);
-
-            if(count_cam1 > 100 || count_cam2 >100){
+            std::cout << "count_cam1 " <<count_cam1 << std::endl;
+            std::cout << "count_cam2 " <<count_cam2 << std::endl;
+            if(count_cam1 > 100 && count_cam2 >100){
                 // Il y a bien une différence importante entre les deux images
                 break;
             }
@@ -209,7 +210,6 @@ void gestion_camera(void){
         
         cv::imwrite(FILE_NAME_IMG_CAM1,diff_image_cam1);
         cv::imwrite(FILE_NAME_IMG_CAM2,diff_image_cam2);
-
         CHECK(sem_post(mvt_cam),"sem_post(mvt_cam)");
     }
 }

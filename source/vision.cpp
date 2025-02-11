@@ -25,15 +25,26 @@ std::vector<double> get_coord_dart(
         cv::destroyAllWindows();
     }
 
-    cv::Mat filtered_image_cam1 = filter_by_centroid(opened_image_cam1, 170);
-    cv::Mat filtered_image_cam2 = filter_by_centroid(opened_image_cam2, 170);
+    cv::Mat filtered_image_cam1 = filter_by_centroid(opened_image_cam1, 250);
+    cv::Mat filtered_image_cam2 = filter_by_centroid(opened_image_cam2, 250);
 
     cv::Point2f lowest_point_felchette_cam1 = find_lowest_white_pixel(filtered_image_cam1);
     cv::Point2f lowest_point_felchette_cam2 = find_lowest_white_pixel(filtered_image_cam2);
 
     if (DEBUG) {
+
+        cv::imshow("filtered_image_cam1", filtered_image_cam1);
+        cv::imshow("filtered_image_cam2", filtered_image_cam2);
+
         std::cout << "Le point le plus bas sur la caméra 1 : " << lowest_point_felchette_cam1 << std::endl;
         std::cout << "Le point le plus bas sur la caméra 2 : " << lowest_point_felchette_cam2 << std::endl;
+
+        cv::circle(diff_image_cam1, lowest_point_felchette_cam1, 10, cv::Scalar(0, 255, 0), -1);
+        // Afficher l'image avec le cercle
+        cv::imshow("Pointe flechette cam 1", diff_image_cam1);
+        cv::waitKey(0);
+        cv::destroyAllWindows();
+
     }
 
     // Définir les matrices intrinsèques des caméras
@@ -84,8 +95,13 @@ std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
         std::cerr << "Erreur : Impossible d'ouvrir la première caméra !" << std::endl;
         throw std::runtime_error("Impossible d'ouvrir la première caméra");
     }
+
+    // Définir la résolution de la caméra à 640x480
+    cap1.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    cap1.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+
     cap1 >> image_cam1_colors;
-    image_cam1_colors = cropBottomTwoThirds(image_cam1_colors);
+    //image_cam1_colors = cropBottomTwoThirds(image_cam1_colors);
     cap1.release();  // On est obligé de fermer le flux sinon ça ne marche pas (Python ça marchait mieux)
         
     // Ouvre la deuxième caméra
@@ -94,8 +110,13 @@ std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
         std::cerr << "Erreur : Impossible d'ouvrir la deuxième caméra !" << std::endl;
         throw std::runtime_error("Impossible d'ouvrir la première caméra");
     }
+
+    // Définir la résolution de la caméra à 640x480
+    cap2.set(cv::CAP_PROP_FRAME_WIDTH, 640);
+    cap2.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+
     cap2 >> image_cam2_colors;
-    image_cam2_colors = cropBottomTwoThirds(image_cam2_colors);
+    //image_cam2_colors = cropBottomTwoThirds(image_cam2_colors);
     cap2.release(); 
         
     // Conversion en nuance de gris

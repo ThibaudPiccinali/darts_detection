@@ -19,4 +19,10 @@
         exit(EXIT_FAILURE);                                                  \
     }
 
+#define CHECK_0(status, msg)                                                   \
+    if ((status) < 0) {                                                    \
+        perror(msg);                                                         \
+        exit(EXIT_FAILURE);                                                  \
+    }
+
 #endif

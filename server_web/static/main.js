@@ -68,6 +68,17 @@ async function updateData() {
 }
 }
 
+// Fonction pour recommencer la partie
+async function restartGame() {
+    const response = await fetch('/api/restart_game', { method: 'POST' });
+    const data = await response.json();
+    if (response.ok) {
+        alert(data.message);
+    } else {
+        alert('Erreur lors du reset de la partie.');
+    }
+}
+
 // Fonction pour terminer la partie
 async function endGame() {
     const response = await fetch('/api/end_game', { method: 'POST' });
@@ -135,6 +146,7 @@ async function change_score_d3() {
 
 // Configuration des événements
 function setupEventListeners() {
+    document.getElementById('restartGame').addEventListener('click', restartGame);
     document.getElementById('endGame').addEventListener('click', endGame);
     document.getElementById('new_score_d1').addEventListener('click', change_score_d1);
     document.getElementById('new_score_d2').addEventListener('click', change_score_d2);

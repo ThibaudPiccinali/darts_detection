@@ -37,8 +37,9 @@ struct Game {
     int scores[NB_MAX_PLAYERS];
     int n_tours[NB_MAX_PLAYERS];
     int detailed_scores[NB_MAX_PLAYERS][MAX_TOURS];
-
+    int reset; // 0 si aucune demande de reset enregistrée, 1 si oui
     void to_init(json data);
     json to_json() const;
+    void to_reset(void);
 };
 #endif

@@ -76,6 +76,24 @@ void Game::to_init(json data) {
     last_darts_score[0] = -1;
     last_darts_score[1] = -1;
     last_darts_score[2] = -1;
+    reset = 0;
+}
+
+void Game::to_reset(void){
+    for (int i = 0; i < nb_player; ++i) {
+        scores[i] = game_mode;
+        n_tours[i] = 0;
+        for (int j = 0; j <MAX_TOURS;j++){
+            detailed_scores[i][j] = -1;
+        }
+    }
+    position[0] = -999;
+    position[1] = 999;
+    index_current_player = 0;
+    last_darts_score[0] = -1;
+    last_darts_score[1] = -1;
+    last_darts_score[2] = -1;
+    reset = 1;
 }
 
 json Game::to_json() const {

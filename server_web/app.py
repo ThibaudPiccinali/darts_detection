@@ -75,12 +75,34 @@ def start_game():
 # Route pour changer le score des fléchettes
 @app.route('/api/change_score_dart', methods=['POST'])
 def change_score_dart():
-    return jsonify({"message": "Score changé"}), 200
+    request_data = request.get_json()
+    if not request_data['new_value'].isnumeric():
+        return jsonify({"message": "Score doit être numérique"}), 400
+    if not (int(request_data['new_value']) >= 0 and int(request_data['new_value']) <= 60):
+        return jsonify({"message": "Score doit être compris entre 0 et 60"}), 400
+    request_cpp = json.dumps({"command": "change_score_dart", "dart_n": str(int(request_data['dart_number'])-1),"new_score":str(int(request_data['new_value'])),})
+    response = send_command(request_cpp)
+    if (json.loads(response)['output'] == "Success"): 
+        return jsonify({"message": "Score changé"}), 200
+    return jsonify({"message": "Impossible de changé le score"}), 400
+
+# Route pour recommencer la partie
+@app.route('/api/restart_game', methods=['POST'])
+def restart_game():
+    request_cpp = json.dumps({"command": "reset"})
+    response = send_command(request_cpp)
+    if (json.loads(response)['output'] == "Success"): 
+        return jsonify({"message": "Partie reset"}), 200
+    return jsonify({"message": "Impossible de recommencer la partie"}), 400
 
 # Route pour terminer la partie
 @app.route('/api/end_game', methods=['POST'])
 def end_game():
-    return jsonify({"message": "Jeu terminé", "redirect_url": url_for('index')}), 200
+    request_cpp = json.dumps({"command": "end"})
+    response = send_command(request_cpp)
+    if (json.loads(response)['output'] == "Success"): 
+        return jsonify({"message": "Jeu terminé", "redirect_url": url_for('index')}), 200
+    return jsonify({"message": "Impossible d'arreter la partie"}), 400
 
 # Route pour la page HTML de login
 @app.route('/')

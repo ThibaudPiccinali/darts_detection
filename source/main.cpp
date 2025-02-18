@@ -53,6 +53,7 @@ void gestion_images(void);
 void  gestion_port(void);
 
 int main() {
+
     pid_t pid[5];
     long no;
     
@@ -119,10 +120,11 @@ int main() {
 
     // Processus Père
     // Attente de la terminaison des threads
-    for (int i = 0; i < 5; i++) {
+    for(int i = 0 ; i < 5; i ++){
         int status;
         CHECK(wait(&status), "wait()");
-    }
+   }
+
     return 0;
 }
 
@@ -160,38 +162,58 @@ void gestion_partie(void){
     int score;
     int scores[3];
     // On attend que la partie se lance sur le site
-    CHECK(sem_wait(start_game),"sem_wait(start_game)");
     while(1){
-        // Gestionnaire des fléchettes
-        for (int i=0; i<3;i++){
-            sleep(5);
-            // On informe les autres processus qu'on peut jetter la fléchette
-            CHECK(sem_post(demande_flech),"sem_post(demande_flech)");
-            // On attends la position calculée soit prête
-            CHECK(sem_wait(score_flech),"sem_wait(score_flech)");
-            // On calcule le score
+        printf("Partie commence\n");
+        CHECK(sem_wait(start_game),"sem_wait(start_game)");
+        while(1){
+            // Gestionnaire des fléchettes
+            for(int i =0; i<3;i++){
+                sleep(5);
+                // On informe les autres processus qu'on peut jetter la fléchette
+                CHECK(sem_post(demande_flech),"sem_post(demande_flech)");
+                // On attends la position calculée soit prête
+                CHECK(sem_wait(score_flech),"sem_wait(score_flech)");
+                // On calcule le score
+                CHECK(sem_wait(acces_partie),"sem_wait(acces_partie)");
+
+                if(partie->reset ==1){
+                    CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
+                    break;
+                }
+
+                std::vector<double> pos(partie->position, partie->position + 2); // On convertit au bon format de donnée pour mes fonctions
+                score = board->compute_score(pos);
+                partie->last_darts_score[i] = score;
+                scores[i] = score;
+                CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
+                std::cout << "Score: " << score << std::endl;
+            }
+            // Gestionnaire de fin de tour
             CHECK(sem_wait(acces_partie),"sem_wait(acces_partie)");
-            std::vector<double> pos(partie->position, partie->position + 2); // On convertit au bon format de donnée pour mes fonctions
-            score = board->compute_score(pos);
-            partie->last_darts_score[i] = score;
+            if(partie->reset ==1){
+                CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
+                break;
+            }
             CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
-            scores[i] = score;
-            std::cout << "Score: " << score << std::endl;
+            sleep(10);
+            CHECK(sem_wait(acces_partie),"sem_wait(acces_partie)");
+            if(partie->reset ==1){
+                CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
+                break;
+            }
+            int score_tot = partie->last_darts_score[0] + partie->last_darts_score[1] + partie->last_darts_score[2];
+            partie->scores[partie->index_current_player] = partie->scores[partie->index_current_player] - score_tot;
+            partie->detailed_scores[partie->index_current_player][partie->n_tours[partie->index_current_player]] = score_tot;
+            partie->n_tours[partie->index_current_player] = partie->n_tours[partie->index_current_player] + 1;
+            partie->index_current_player = (partie->index_current_player + 1 )%partie->nb_player;
+            partie->last_darts_score[0] = -1;
+            partie->last_darts_score[1] = -1;
+            partie->last_darts_score[2] = -1;
+            CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
         }
-        // Gestionnaire de fin de tour
-        CHECK(sem_wait(acces_partie),"sem_wait(acces_partie)");
-        int score_tot = scores[0] + scores[1] + scores[2];
-        partie->scores[partie->index_current_player] = partie->scores[partie->index_current_player] - score_tot;
-        partie->detailed_scores[partie->index_current_player][partie->n_tours[partie->index_current_player]] = score_tot;
-        partie->n_tours[partie->index_current_player] = partie->n_tours[partie->index_current_player] + 1;
-        CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
-        sleep(10);
-        CHECK(sem_wait(acces_partie),"sem_wait(acces_partie)");
-        partie->index_current_player = (partie->index_current_player + 1 )%partie->nb_player;
-        partie->last_darts_score[0] = -1;
-        partie->last_darts_score[1] = -1;
-        partie->last_darts_score[2] = -1;
-        CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
+    CHECK(sem_wait(acces_partie),"sem_wait(acces_partie)");
+    partie->reset = 0; // Le reset a bien été effectué
+    CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
     }
 }
 void compute_position(void){
@@ -341,20 +363,30 @@ void gestion_port(void){
             }
         else if(command == "reset"){
             CHECK(sem_wait(acces_partie),"sem_post(acces_partie)");
-            for (int i = 0; i < partie->nb_player; ++i) {
-                partie->scores[i] = partie->game_mode;
-                partie->detailed_scores[i][0] = -1;
-            }
-            partie->position[0] = -999;
-            partie->position[1] = 999;
-            partie->index_current_player = 0;
-            partie->last_darts_score[0] = -1;
-            partie->last_darts_score[1] = -1;
-            partie->last_darts_score[2] = -1;
+            partie->to_reset();
+            CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
+            // On relance la partie
+            CHECK(sem_post(start_game),"sem_post(start_game)");
+            json response_json = {{"output", "Success"}};
+            std::string response_str = response_json.dump();
+            send(client_sd, response_str.c_str(), response_str.size(), 0);
+        }
+        else if(command == "end"){
+            CHECK(sem_wait(acces_partie),"sem_post(acces_partie)");
+            partie->to_reset();
             CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
             json response_json = {{"output", "Success"}};
             std::string response_str = response_json.dump();
             send(client_sd, response_str.c_str(), response_str.size(), 0);
         }
+        else if (command =="change_score_dart"){
+            CHECK(sem_wait(acces_partie),"sem_post(acces_partie)");
+            partie->last_darts_score[atoi(j["dart_n"].get<std::string>().c_str())] = atoi(j["new_score"].get<std::string>().c_str());
+            CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
+            json response_json = {{"output", "Success"}};
+            std::string response_str = response_json.dump();
+            send(client_sd, response_str.c_str(), response_str.size(), 0);
+        }
+        
     }
 }

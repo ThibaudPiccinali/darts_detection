@@ -36,6 +36,8 @@ sem_t* score_flech;
 sem_t* mvt_cam;
 sem_t* image;
 sem_t* cam;
+sem_t* ask_clear_board;
+sem_t* board_cleared;
 
 Game* partie;
 int shm_fd;
@@ -49,12 +51,13 @@ void bye(void);
 void gestion_partie(void);
 void compute_position(void);
 void gestion_camera(void);
-void gestion_images(void);
-void  gestion_port(void);
+void gestion_flechette(void);
+void gestion_cible(void);
+void gestion_port(void);
 
 int main() {
 
-    pid_t pid[5];
+    pid_t pid[6];
     long no;
     
     // Création des MUTEX
@@ -65,7 +68,9 @@ int main() {
     CHECK_S(image = sem_open("image",O_CREAT|O_EXCL,0666,0),"sem_open(image)");
     CHECK_S(cam = sem_open("cam",O_CREAT|O_EXCL,0666,0),"sem_open(cam)");
     CHECK_S(mvt_cam = sem_open("mvt_cam",O_CREAT|O_EXCL,0666,0),"sem_open(mvt_cam)");
-    
+    CHECK_S(ask_clear_board = sem_open("ask_clear_board",O_CREAT|O_EXCL,0666,0),"sem_open(ask_clear_board)");
+    CHECK_S(board_cleared = sem_open("board_cleared",O_CREAT|O_EXCL,0666,0),"sem_open(board_cleared)");
+
     // Permet de faire le cleanning des sémaphores lors des exits
     atexit(bye);// bye detruit les semaphores
 
@@ -87,7 +92,7 @@ int main() {
     CHECK(sigprocmask(SIG_SETMASK , &Mask , &OldMask), "sigprocmask()");    
 
     // Création de l'ensemble des fils du processus père
-    for(no = 0; no<5;no++){
+    for(no = 0; no<6;no++){
         CHECK(pid[no]=fork(),"fork(pid[no])");
         if (pid[no]==0){
             // Démasque SIGINT
@@ -107,20 +112,23 @@ int main() {
                 gestion_camera();
             }
             if (no == 3){
-                // Gestionnaire images
-                gestion_images();
+                // Gestionnaire de fléchette
+                gestion_flechette();
             }
             if(no == 4){
                 // Gestionnaire port communication
                 gestion_port();
             }
-
+            if(no ==5){
+                // Gestionnaire de cible
+                gestion_cible();
+            }
         }
     }
 
     // Processus Père
     // Attente de la terminaison des threads
-    for(int i = 0 ; i < 5; i ++){
+    for(int i = 0 ; i < 6; i ++){
         int status;
         CHECK(wait(&status), "wait()");
    }
@@ -144,7 +152,11 @@ void bye(void){
     CHECK(sem_unlink("mvt_cam"),"sem_unlink(mvt_cam)");
     CHECK(sem_close(start_game),"sem_close(start_game)");
     CHECK(sem_unlink("start_game"),"sem_unlink(start_game)");
-    
+    CHECK(sem_close(ask_clear_board),"sem_close(ask_clear_board)");
+    CHECK(sem_unlink("ask_clear_board"),"sem_unlink(ask_clear_board)");
+    CHECK(sem_close(board_cleared),"sem_close(board_cleared)");
+    CHECK(sem_unlink("board_cleared"),"sem_unlink(board_cleared)");
+
     // Suppression des mémoires partagés
     CHECK(munmap(partie, size_game),"munmap(Game)");
     CHECK(close(shm_fd),"close(partie)");
@@ -163,7 +175,7 @@ void gestion_partie(void){
     int scores[3];
     // On attend que la partie se lance sur le site
     while(1){
-        printf("Partie commence\n");
+        printf("Partie prête\n");
         CHECK(sem_wait(start_game),"sem_wait(start_game)");
         while(1){
             // Gestionnaire des fléchettes
@@ -195,7 +207,11 @@ void gestion_partie(void){
                 break;
             }
             CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
-            sleep(10);
+
+            // On demande si la cible est prête (le joueur à retiré les fléchettes)
+            CHECK(sem_post(ask_clear_board),"sem_wait(ask_clear_board)");
+            CHECK(sem_wait(board_cleared),"sem_post(board_cleared)");
+
             CHECK(sem_wait(acces_partie),"sem_wait(acces_partie)");
             if(partie->reset ==1){
                 CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
@@ -243,7 +259,6 @@ void gestion_camera(void){
     cv::Mat dart_image_cam1_gray,dart_image_cam2_gray;
     cv::Mat diff_image_cam1, diff_image_cam2;
 
-    CHECK(sem_post(cam),"sem_post(cam)");
     while(1){
         CHECK(sem_wait(cam),"sem_wait(cam)");
 
@@ -287,12 +302,22 @@ void gestion_camera(void){
         CHECK(sem_post(mvt_cam),"sem_post(mvt_cam)");
     }
 }
-void gestion_images(void){
+void gestion_flechette(void){
     while(1){
         CHECK(sem_wait(demande_flech),"sem_wait(demande_flech)");
+        CHECK(sem_post(cam),"sem_post(cam)");
         CHECK(sem_wait(mvt_cam),"sem_wait(mvt_cam)");
         CHECK(sem_post(image),"sem_post(image)");
+    }
+}
+
+void gestion_cible(void){
+    while(1){
+        CHECK(sem_wait(ask_clear_board),"sem_wait(ask_clear_board)");
         CHECK(sem_post(cam),"sem_post(cam)");
+        CHECK(sem_wait(mvt_cam),"sem_wait(mvt_cam)");
+        //sleep(10);// Tests
+        CHECK(sem_post(board_cleared),"sem_post(board_cleared)");
     }
 }
 

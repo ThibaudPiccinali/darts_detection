@@ -314,9 +314,9 @@ void gestion_flechette(void){
 void gestion_cible(void){
     while(1){
         CHECK(sem_wait(ask_clear_board),"sem_wait(ask_clear_board)");
-        CHECK(sem_post(cam),"sem_post(cam)");
-        CHECK(sem_wait(mvt_cam),"sem_wait(mvt_cam)");
-        //sleep(10);// Tests
+        // CHECK(sem_post(cam),"sem_post(cam)");
+        // CHECK(sem_wait(mvt_cam),"sem_wait(mvt_cam)");
+        sleep(10);// Tests
         CHECK(sem_post(board_cleared),"sem_post(board_cleared)");
     }
 }

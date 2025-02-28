@@ -7,23 +7,31 @@ cv::Mat binary_diff_images(const cv::Mat& pixels_list_a, const cv::Mat& pixels_l
 
     cv::Mat diff, result;
     cv::absdiff(pixels_list_a, pixels_list_b, diff);  // Différence absolue pixel par pixel
-    cv::threshold(diff, result, 45, 255, cv::THRESH_BINARY);  // Seuillage
+    cv::threshold(diff, result, 30, 255, cv::THRESH_BINARY);  // Seuillage
 
     return result;
 }
 
-cv::Mat cropBottomTwoThirds(const cv::Mat& image) {
-    int height = image.rows;
-    int width = image.cols;
+cv::Mat filter_by_y(const cv::Mat& image, int y_ref) {
+    cv::Mat filtered_image = cv::Mat::zeros(image.size(), image.type());
+    int h = image.rows;
+    int w = image.cols;
 
-    // Définir la région à conserver : les 2/3 inférieurs
-    int cropY = height / 3; // On supprime le premier tiers
+    for (int y = 0; y < h; ++y) {
+        for (int x = 0; x < w; ++x) {
+            if (y_ref > 0) {
+                if (y > y_ref && image.at<uchar>(y, x) == 255) {
+                    filtered_image.at<uchar>(y, x) = 255;
+                }
+            } else {
+                if (y < h + y_ref && image.at<uchar>(y, x) == 255) {
+                    filtered_image.at<uchar>(y, x) = 255;
+                }
+            }
+        }
+    }
 
-    // Définir la région d'intérêt (ROI)
-    cv::Rect roi(0, cropY, width, height - cropY);
-    
-    // Retourner la sous-matrice correspondant à la ROI
-    return image(roi).clone();
+    return filtered_image;
 }
 
 cv::Point2d center_of_mass(const cv::Mat& image) {

@@ -5,7 +5,7 @@
 
 // Déclaration de la fonction
 cv::Mat binary_diff_images(const cv::Mat& pixels_list_a, const cv::Mat& pixels_list_b);
-cv::Mat cropBottomTwoThirds(const cv::Mat& image);
+cv::Mat filter_by_y(const cv::Mat& image, int y_ref);
 cv::Point2d center_of_mass(const cv::Mat& image);
 cv::Mat filter_by_centroid(const cv::Mat& image, double radius);
 cv::Point find_lowest_white_pixel(const cv::Mat& image);

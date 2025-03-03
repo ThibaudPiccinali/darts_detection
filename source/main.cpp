@@ -266,24 +266,25 @@ void gestion_camera(void){
         // std::pair<cv::Mat, cv::Mat> images_ref_gray = get_gray_images_both_cameras(CAP1, CAP2);
         // base_image_cam1_gray = images_ref_gray.first;
         // base_image_cam2_gray = images_ref_gray.second;
-        
+
         // Tests
-        base_image_cam1_gray = cv::imread("tests/base_image_cam1_colors.png", cv::IMREAD_GRAYSCALE);
-        base_image_cam2_gray = cv::imread("tests/base_image_cam2_colors.png", cv::IMREAD_GRAYSCALE);
+        base_image_cam1_gray = cv::imread("tests/7/base_image_cam1_gray.png", cv::IMREAD_GRAYSCALE);
+        base_image_cam2_gray = cv::imread("tests/7/base_image_cam2_gray.png", cv::IMREAD_GRAYSCALE);
 
         while (1){
             // Capture des images courantes
             // std::pair<cv::Mat, cv::Mat> images_courantes_gray = get_gray_images_both_cameras(CAP1, CAP2);
             // dart_image_cam1_gray = images_courantes_gray.first;
             // dart_image_cam2_gray = images_courantes_gray.second;
-            
+
             // Tests
-            dart_image_cam1_gray = cv::imread("tests/dart_image_cam1_colors.png", cv::IMREAD_GRAYSCALE);
-            dart_image_cam2_gray = cv::imread("tests/dart_image_cam2_colors.png", cv::IMREAD_GRAYSCALE);
+            dart_image_cam1_gray = cv::imread("tests/7/dart_image_cam1_gray.png", cv::IMREAD_GRAYSCALE);
+            dart_image_cam2_gray = cv::imread("tests/7/dart_image_cam2_gray.png", cv::IMREAD_GRAYSCALE);
 
             // Calcul des différences
-            diff_image_cam1 = binary_diff_images(base_image_cam1_gray, dart_image_cam1_gray);
-            diff_image_cam2 = binary_diff_images(base_image_cam2_gray, dart_image_cam2_gray);
+            diff_image_cam1 = binary_diff_images(base_image_cam1_gray, dart_image_cam1_gray,35);
+            diff_image_cam2 = binary_diff_images(base_image_cam2_gray, dart_image_cam2_gray,35);
+
             // On les compte
             count_cam1 = cv::countNonZero(diff_image_cam1);
             count_cam2 = cv::countNonZero(diff_image_cam2);
@@ -294,9 +295,10 @@ void gestion_camera(void){
                 break;
             }
         }
-        
+        // On enregistre avec un seuil plus bas
+        diff_image_cam1 = binary_diff_images(base_image_cam1_gray, dart_image_cam1_gray,25);
+        diff_image_cam2 = binary_diff_images(base_image_cam2_gray, dart_image_cam2_gray,25);
         // On enregistre les images de différence dans l'espace partagé entre les processus
-        
         cv::imwrite(FILE_NAME_IMG_CAM1,diff_image_cam1);
         cv::imwrite(FILE_NAME_IMG_CAM2,diff_image_cam2);
         CHECK(sem_post(mvt_cam),"sem_post(mvt_cam)");

@@ -13,13 +13,13 @@ std::vector<double> get_coord_dart(
     cv::Mat diff_image_cam2_sans_haut_sans_bas;
 
     // On extrait la zone centrale
-    
-    diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, 160);
-    diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-230);
 
-    diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, 160);
-    diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-230);
-    
+    diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, 240);
+    diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-360);
+
+    diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, 240);
+    diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-360);
+
     if (DEBUG) {
         cv::imshow("diff_image_cam1", diff_image_cam1);
         cv::imshow("diff_image_cam2", diff_image_cam2);
@@ -82,11 +82,11 @@ std::vector<double> get_coord_dart(
 
     // Appliquer PCA
     cv::PCA pca_cam1(pointsMat_cam1, cv::Mat(), cv::PCA::DATA_AS_ROW);
-    cv::Point2f eigenvector_cam1(pca_cam1.eigenvectors.at<float>(0, 0), pca_cam1.eigenvectors.at<float>(0, 1));
+    cv::Point2f eigenvector_cam1(pca_cam1.eigenvectors.at<float>(0, 0), pca_cam1.eigenvectors.at<float>(0, 1));     
     double vx_cam1 = eigenvector_cam1.x, vy_cam1 = eigenvector_cam1.y;
 
     cv::PCA pca_cam2(pointsMat_cam2, cv::Mat(), cv::PCA::DATA_AS_ROW);
-    cv::Point2f eigenvector_cam2(pca_cam2.eigenvectors.at<float>(0, 0), pca_cam2.eigenvectors.at<float>(0, 1));
+    cv::Point2f eigenvector_cam2(pca_cam2.eigenvectors.at<float>(0, 0), pca_cam2.eigenvectors.at<float>(0, 1));     
     double vx_cam2 = eigenvector_cam2.x, vy_cam2 = eigenvector_cam2.y;
 
     int w = diff_image_cam1_sans_haut.cols;
@@ -150,7 +150,7 @@ std::vector<double> get_coord_dart(
     // Extraction du point le plus bas
     cv::Point2f lowest_point_felchette_cam1 = find_lowest_white_pixel(filtered_image_cam1_2);
     cv::Point2f lowest_point_felchette_cam2 = find_lowest_white_pixel(filtered_image_cam2_2);
-    
+
     if(DEBUG){
         std::cout << "Le point le plus bas sur cam1 : " << lowest_point_felchette_cam1 << std::endl;
         std::cout << "Le point le plus bas sur cam2 : " << lowest_point_felchette_cam2 << std::endl;
@@ -175,7 +175,7 @@ std::vector<double> get_coord_dart(
 }
 
 std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
-    
+
     cv::Mat image_cam1_colors,image_cam2_colors;
     cv::Mat image_cam1_gray,image_cam2_gray;
 
@@ -186,14 +186,14 @@ std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
         throw std::runtime_error("Impossible d'ouvrir la première caméra");
     }
 
-    // Définir la résolution de la caméra à 640x480
-    cap1.set(cv::CAP_PROP_FRAME_WIDTH, 640);
-    cap1.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+    // Définir la résolution de la caméra à 1280x720
+    cap1.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+    cap1.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
 
     cap1 >> image_cam1_colors;
     //image_cam1_colors = cropBottomTwoThirds(image_cam1_colors);
     cap1.release();  // On est obligé de fermer le flux sinon ça ne marche pas (Python ça marchait mieux)
-        
+
     // Ouvre la deuxième caméra
     cv::VideoCapture cap2(c2);
     if (!cap2.isOpened()) {
@@ -201,14 +201,14 @@ std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
         throw std::runtime_error("Impossible d'ouvrir la première caméra");
     }
 
-    // Définir la résolution de la caméra à 640x480
-    cap2.set(cv::CAP_PROP_FRAME_WIDTH, 640);
-    cap2.set(cv::CAP_PROP_FRAME_HEIGHT, 480);
+    // Définir la résolution de la caméra à 1280x720
+    cap2.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
+    cap2.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
 
     cap2 >> image_cam2_colors;
     //image_cam2_colors = cropBottomTwoThirds(image_cam2_colors);
-    cap2.release(); 
-        
+    cap2.release();
+
     // Conversion en nuance de gris
     cv::cvtColor(image_cam1_colors, image_cam1_gray, cv::COLOR_BGR2GRAY);
     cv::cvtColor(image_cam2_colors, image_cam2_gray, cv::COLOR_BGR2GRAY);

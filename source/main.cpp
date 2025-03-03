@@ -59,7 +59,7 @@ int main() {
 
     pid_t pid[6];
     long no;
-    
+
     // Création des MUTEX
     CHECK_S(acces_partie = sem_open("acces_partie",O_CREAT|O_EXCL,0666,1),"sem_open(acces_partie)");
     CHECK_S(start_game = sem_open("start_game",O_CREAT|O_EXCL,0666,0),"sem_open(start_game)");
@@ -68,7 +68,7 @@ int main() {
     CHECK_S(image = sem_open("image",O_CREAT|O_EXCL,0666,0),"sem_open(image)");
     CHECK_S(cam = sem_open("cam",O_CREAT|O_EXCL,0666,0),"sem_open(cam)");
     CHECK_S(mvt_cam = sem_open("mvt_cam",O_CREAT|O_EXCL,0666,0),"sem_open(mvt_cam)");
-    CHECK_S(ask_clear_board = sem_open("ask_clear_board",O_CREAT|O_EXCL,0666,0),"sem_open(ask_clear_board)");
+    CHECK_S(ask_clear_board = sem_open("ask_clear_board",O_CREAT|O_EXCL,0666,0),"sem_open(ask_clear_board)");       
     CHECK_S(board_cleared = sem_open("board_cleared",O_CREAT|O_EXCL,0666,0),"sem_open(board_cleared)");
 
     // Permet de faire le cleanning des sémaphores lors des exits
@@ -83,13 +83,13 @@ int main() {
     CHECK(ftruncate(shm_fd, size_game),"ftruncate(shm_fd)");
     CHECK_MAP(partie = (Game*)mmap(0, size_game, PROT_READ | PROT_WRITE, MAP_SHARED, shm_fd, 0),"mmap");
 
-    // Avec ça le père sera "imunisé" au Ctrl-C mais pas ses fils (on va réactiver le SIGINT pour eux) ! 
+    // Avec ça le père sera "imunisé" au Ctrl-C mais pas ses fils (on va réactiver le SIGINT pour eux) !
     // Du coup ils vont tous se terminer, sauf le père qui va pouvoir les récupérer et terminer correctement est donc faire le nettoyage des sémaphores
     // Masque SIGINT pour le père
     sigset_t Mask,OldMask;
     CHECK(sigemptyset(&Mask), "sigemptyset()");
     CHECK(sigaddset(&Mask , SIGINT), "sigaddset(SIGINT)");
-    CHECK(sigprocmask(SIG_SETMASK , &Mask , &OldMask), "sigprocmask()");    
+    CHECK(sigprocmask(SIG_SETMASK , &Mask , &OldMask), "sigprocmask()");
 
     // Création de l'ensemble des fils du processus père
     for(no = 0; no<6;no++){
@@ -98,10 +98,10 @@ int main() {
             // Démasque SIGINT
             CHECK(sigprocmask(SIG_SETMASK , &OldMask , NULL), "sigprocmask()");
 
-            // On lance les processus fils           
+            // On lance les processus fils
             if (no == 0){
                 // Gestionnaire de partie
-                gestion_partie(); 
+                gestion_partie();
             }
             if(no== 1){
                 // Calcul de la postion de la fléchette
@@ -220,7 +220,7 @@ void gestion_partie(void){
             int score_tot = partie->last_darts_score[0] + partie->last_darts_score[1] + partie->last_darts_score[2];
             partie->scores[partie->index_current_player] = partie->scores[partie->index_current_player] - score_tot;
             partie->detailed_scores[partie->index_current_player][partie->n_tours[partie->index_current_player]] = score_tot;
-            partie->n_tours[partie->index_current_player] = partie->n_tours[partie->index_current_player] + 1;
+            partie->n_tours[partie->index_current_player] = partie->n_tours[partie->index_current_player] + 1;      
             partie->index_current_player = (partie->index_current_player + 1 )%partie->nb_player;
             partie->last_darts_score[0] = -1;
             partie->last_darts_score[1] = -1;
@@ -237,7 +237,7 @@ void compute_position(void){
         // On attends les images soient pretes
         CHECK(sem_wait(image),"sem_wait(image)");
         // On récupère les images dans les fichiers partagés
-        
+
         cv::Mat diff_cam1 = cv::imread(FILE_NAME_IMG_CAM1);
         cv::Mat diff_cam2 = cv::imread(FILE_NAME_IMG_CAM2);
         cv::cvtColor(diff_cam1, diff_cam1, cv::COLOR_BGR2GRAY);
@@ -258,36 +258,49 @@ void gestion_camera(void){
     cv::Mat base_image_cam1_gray,base_image_cam2_gray;
     cv::Mat dart_image_cam1_gray,dart_image_cam2_gray;
     cv::Mat diff_image_cam1, diff_image_cam2;
+    cv::Mat diff_image_cam1_sans_haut;
+    cv::Mat diff_image_cam1_sans_haut_sans_bas;
+    cv::Mat diff_image_cam2_sans_haut;
+    cv::Mat diff_image_cam2_sans_haut_sans_bas;
 
     while(1){
         CHECK(sem_wait(cam),"sem_wait(cam)");
 
         // Capture de l'image de référence
-        // std::pair<cv::Mat, cv::Mat> images_ref_gray = get_gray_images_both_cameras(CAP1, CAP2);
-        // base_image_cam1_gray = images_ref_gray.first;
-        // base_image_cam2_gray = images_ref_gray.second;
-
-        // Tests
-        base_image_cam1_gray = cv::imread("tests/7/base_image_cam1_gray.png", cv::IMREAD_GRAYSCALE);
-        base_image_cam2_gray = cv::imread("tests/7/base_image_cam2_gray.png", cv::IMREAD_GRAYSCALE);
+        std::pair<cv::Mat, cv::Mat> images_ref_gray = get_gray_images_both_cameras(CAP1, CAP2);
+        base_image_cam1_gray = images_ref_gray.first;
+        base_image_cam2_gray = images_ref_gray.second;
 
         while (1){
             // Capture des images courantes
-            // std::pair<cv::Mat, cv::Mat> images_courantes_gray = get_gray_images_both_cameras(CAP1, CAP2);
-            // dart_image_cam1_gray = images_courantes_gray.first;
-            // dart_image_cam2_gray = images_courantes_gray.second;
+            std::pair<cv::Mat, cv::Mat> images_courantes_gray = get_gray_images_both_cameras(CAP1, CAP2);
+            dart_image_cam1_gray = images_courantes_gray.first;
+            dart_image_cam2_gray = images_courantes_gray.second;
 
-            // Tests
-            dart_image_cam1_gray = cv::imread("tests/7/dart_image_cam1_gray.png", cv::IMREAD_GRAYSCALE);
-            dart_image_cam2_gray = cv::imread("tests/7/dart_image_cam2_gray.png", cv::IMREAD_GRAYSCALE);
+            cv::imshow("dart_image_cam1_gray", dart_image_cam1_gray);
+            cv::imshow("dart_image_cam2_gray", dart_image_cam2_gray);
+
+            cv::waitKey(0);
+            cv::destroyAllWindows();
 
             // Calcul des différences
             diff_image_cam1 = binary_diff_images(base_image_cam1_gray, dart_image_cam1_gray,35);
             diff_image_cam2 = binary_diff_images(base_image_cam2_gray, dart_image_cam2_gray,35);
 
-            // On les compte
-            count_cam1 = cv::countNonZero(diff_image_cam1);
-            count_cam2 = cv::countNonZero(diff_image_cam2);
+            // On extrait la zone centrale
+            diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, 240);
+            diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-360);
+            diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, 240);
+            diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-360);
+
+            // Léger filtrage
+            cv::medianBlur(diff_image_cam1_sans_haut_sans_bas, diff_image_cam1_sans_haut_sans_bas, 3);
+            cv::medianBlur(diff_image_cam2_sans_haut_sans_bas, diff_image_cam2_sans_haut_sans_bas, 3);
+            // reprendre ici la prochaine fois car determination si félchette ou pas ne marche plus trop depuis le passage en HD
+
+            // On compte les différences
+            count_cam1 = cv::countNonZero(diff_image_cam1_sans_haut_sans_bas);
+            count_cam2 = cv::countNonZero(diff_image_cam2_sans_haut_sans_bas);
             std::cout << "count_cam1 " <<count_cam1 << std::endl;
             std::cout << "count_cam2 " <<count_cam2 << std::endl;
             if(count_cam1 > 100 && count_cam2 >100){
@@ -342,16 +355,16 @@ void gestion_port(void){
     adrserveur.sin_port = htons(LOCALPORT);
     adrserveur.sin_addr.s_addr = INADDR_ANY;
     //Affectation d'une adresse a la socket
-    CHECK(erreur = bind(se, (const struct sockaddr *)&adrserveur, sizeof(adrserveur)),"Erreur de bind !!!\n");
+    CHECK(erreur = bind(se, (const struct sockaddr *)&adrserveur, sizeof(adrserveur)),"Erreur de bind !!!\n");      
     CHECK_0(listen(se, MAXCLIENTS),"Erreur listen !\n");
 
     std::string response;
     char buff_reception[BUFFER_SIZE];
     while(1){
         memset(buff_reception, 0, BUFFER_SIZE);
-        CHECK(client_sd = accept(se, (struct sockaddr *)&adrclient, &adrclient_len),"Erreur de accept !!!\n");
+        CHECK(client_sd = accept(se, (struct sockaddr *)&adrclient, &adrclient_len),"Erreur de accept !!!\n");      
         CHECK(nbcar = recv(client_sd, buff_reception, BUFFER_SIZE, 0),"Problème de réception !!!\n");
-        
+
         std::string request(buff_reception);
 
         json j = json::parse(request);
@@ -381,7 +394,7 @@ void gestion_port(void){
                 send(client_sd, response_str.c_str(), response_str.size(), 0);
             }
         }
-        else if (command == "getdata") {  
+        else if (command == "getdata") {
             CHECK(sem_wait(acces_partie),"sem_post(acces_partie)");
             json response_json = partie->to_json();
             CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
@@ -414,6 +427,6 @@ void gestion_port(void){
             std::string response_str = response_json.dump();
             send(client_sd, response_str.c_str(), response_str.size(), 0);
         }
-        
+
     }
 }

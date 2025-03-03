@@ -1,6 +1,7 @@
 #include <opencv2/opencv.hpp>
 #include <iostream>
 #include "processing.h"
+#include "config.h"
 
 std::vector<double> get_coord_dart(
     const cv::Mat& diff_image_cam1, const cv::Mat& diff_image_cam2,
@@ -155,29 +156,10 @@ std::vector<double> get_coord_dart(
         std::cout << "Le point le plus bas sur cam2 : " << lowest_point_felchette_cam2 << std::endl;
     }
 
-    // Définir les matrices intrinsèques des caméras
-    cv::Mat K1 = (cv::Mat_<float>(3, 3) << 459.44732253f, 0.0f, 339.56888157f, 0.0f, 462.62071383f, 222.54341588f, 0.0f, 0.0f, 1.0f);
-    cv::Mat K2 = (cv::Mat_<float>(3, 3) << 458.80917086f, 0.0f, 360.12752469f, 0.0f, 462.44782024f, 194.38816358f, 0.0f, 0.0f, 1.0f);
-
-    // Matrices extrinsèques (Rotation et Translation)
-    // Origine -> Cam1
-    cv::Mat R1 = cv::Mat::eye(3, 3, CV_32F); // Rotation de la caméra 1
-    cv::Mat T1 = (cv::Mat_<float>(3, 1) << 0.0f, 0.0f, 0.0f); // Translation de la caméra 1
-    
-    cv::Mat R2 = (cv::Mat_<float>(3, 3) << 0.0f, 0.0f, 1.0f,
-                                        0.0f, 1.0f, 0.0f,
-                                        -1.0f, 0.0f, 0.0f); // Rotation de 90° sur Y
-    cv::Mat T2 = (cv::Mat_<float>(3, 1) << -30.0f, 0.0f, -30.0f); // Translation de la caméra 2
-
     // Triangulation pour obtenir les points 3D
-    cv::Mat points_2D_felchette = triangulate_point(K1, K2, R1, T1, R2, T2,lowest_point_felchette_cam1, lowest_point_felchette_cam2);
+    cv::Mat points_2D_felchette = triangulate_point(K1, K2, RCAM1, TCAM1, RCAM2, TCAM2,lowest_point_felchette_cam1, lowest_point_felchette_cam2);
 
-    // Transformation vers le référentiel cible
-    cv::Mat T = (cv::Mat_<double>(3, 1) << 0, 0, 30);
-    cv::Mat R3 = (cv::Mat_<double>(3, 3) << -1, 0, 0,0, -1, 0,0, 0, 1); // Rotation de 180° sur Z
-    cv::Mat R4 = (cv::Mat_<double>(3, 3) << 1, 0, 0,0, -1, 0,0, 0, -1); // Rotation 180° sur X
-
-    cv::Mat point3D_real = R4 * R3* points_2D_felchette + T;
+    cv::Mat point3D_real = R2 * R1* points_2D_felchette + T;
 
     if (DEBUG) {
         // Affichage des résultats

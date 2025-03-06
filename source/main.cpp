@@ -277,12 +277,6 @@ void gestion_camera(void){
             dart_image_cam1_gray = images_courantes_gray.first;
             dart_image_cam2_gray = images_courantes_gray.second;
 
-            cv::imshow("dart_image_cam1_gray", dart_image_cam1_gray);
-            cv::imshow("dart_image_cam2_gray", dart_image_cam2_gray);
-
-            cv::waitKey(0);
-            cv::destroyAllWindows();
-
             // Calcul des différences
             diff_image_cam1 = binary_diff_images(base_image_cam1_gray, dart_image_cam1_gray,35);
             diff_image_cam2 = binary_diff_images(base_image_cam2_gray, dart_image_cam2_gray,35);
@@ -296,14 +290,13 @@ void gestion_camera(void){
             // Léger filtrage
             cv::medianBlur(diff_image_cam1_sans_haut_sans_bas, diff_image_cam1_sans_haut_sans_bas, 3);
             cv::medianBlur(diff_image_cam2_sans_haut_sans_bas, diff_image_cam2_sans_haut_sans_bas, 3);
-            // reprendre ici la prochaine fois car determination si félchette ou pas ne marche plus trop depuis le passage en HD
 
             // On compte les différences
             count_cam1 = cv::countNonZero(diff_image_cam1_sans_haut_sans_bas);
             count_cam2 = cv::countNonZero(diff_image_cam2_sans_haut_sans_bas);
             std::cout << "count_cam1 " <<count_cam1 << std::endl;
             std::cout << "count_cam2 " <<count_cam2 << std::endl;
-            if(count_cam1 > 100 && count_cam2 >100){
+            if(count_cam1 > 400 && count_cam2 >400){
                 // Il y a bien une différence importante entre les deux images
                 break;
             }

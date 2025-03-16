@@ -3,16 +3,11 @@
 #include <sys/wait.h>
 #include <semaphore.h>
 #include <sys/fcntl.h>
-#include <iostream>
 #include <sys/mman.h>
 #include <sys/stat.h>
-#include <opencv2/opencv.hpp>
 #include <string>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include "json.hpp"
-
-using json = nlohmann::json;
 
 #include "utils.h"
 #include "object.h"
@@ -243,7 +238,7 @@ void compute_position(void){
         cv::cvtColor(diff_cam1, diff_cam1, cv::COLOR_BGR2GRAY);
         cv::cvtColor(diff_cam2, diff_cam2, cv::COLOR_BGR2GRAY);
 
-        std::vector<double> pos = get_coord_dart(diff_cam1,diff_cam2);
+        std::vector<double> pos = get_coord_dart(diff_cam1,diff_cam2,false);
         std::cout << "Coordonnées Dart: (" << pos[0] << ", " << pos[1] << ")" << std::endl;
         CHECK(sem_wait(acces_partie),"sem_post(acces_partie)");
         std::copy(pos.begin(), pos.begin() + 2, partie->position);
@@ -282,10 +277,10 @@ void gestion_camera(void){
             diff_image_cam2 = binary_diff_images(base_image_cam2_gray, dart_image_cam2_gray,35);
 
             // On extrait la zone centrale
-            diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, 240);
-            diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-360);
-            diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, 240);
-            diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-360);
+            diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, IMAGE_WIDTH/3);
+            diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-IMAGE_WIDTH/2);
+            diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, IMAGE_WIDTH/3);
+            diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-IMAGE_WIDTH/2);
 
             // Léger filtrage
             cv::medianBlur(diff_image_cam1_sans_haut_sans_bas, diff_image_cam1_sans_haut_sans_bas, 3);

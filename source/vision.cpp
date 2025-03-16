@@ -1,11 +1,49 @@
-#include <opencv2/opencv.hpp>
-#include <iostream>
 #include "processing.h"
 #include "config.h"
+#include "vision.h"
 
-std::vector<double> get_coord_dart(
-    const cv::Mat& diff_image_cam1, const cv::Mat& diff_image_cam2,
-    bool DEBUG = false) {
+
+std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
+
+    cv::Mat image_cam1_colors,image_cam2_colors;
+    cv::Mat image_cam1_gray,image_cam2_gray;
+
+    // Ouvre la première caméra
+    cv::VideoCapture cap1(c1);
+    if (!cap1.isOpened()) {
+        std::cerr << "Erreur : Impossible d'ouvrir la première caméra !" << std::endl;
+        throw std::runtime_error("Impossible d'ouvrir la première caméra");
+    }
+
+    // Définir la résolution de la caméra
+    cap1.set(cv::CAP_PROP_FRAME_WIDTH, IMAGE_LENGTH);
+    cap1.set(cv::CAP_PROP_FRAME_HEIGHT, IMAGE_WIDTH);
+
+    cap1 >> image_cam1_colors;
+    cap1.release();  // On est obligé de fermer le flux sinon ça ne marche pas (Python ça marchait mieux)
+
+    // Ouvre la deuxième caméra
+    cv::VideoCapture cap2(c2);
+    if (!cap2.isOpened()) {
+        std::cerr << "Erreur : Impossible d'ouvrir la deuxième caméra !" << std::endl;
+        throw std::runtime_error("Impossible d'ouvrir la première caméra");
+    }
+
+    // Définir la résolution de la caméra
+    cap2.set(cv::CAP_PROP_FRAME_WIDTH, IMAGE_LENGTH);
+    cap2.set(cv::CAP_PROP_FRAME_HEIGHT, IMAGE_WIDTH);
+
+    cap2 >> image_cam2_colors;
+    cap2.release();
+
+    // Conversion en nuance de gris
+    cv::cvtColor(image_cam1_colors, image_cam1_gray, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(image_cam2_colors, image_cam2_gray, cv::COLOR_BGR2GRAY);
+
+    return std::make_pair(image_cam1_gray, image_cam2_gray);
+}
+
+std::vector<double> get_coord_dart(const cv::Mat& diff_image_cam1, const cv::Mat& diff_image_cam2,bool DEBUG) {
 
     cv::Mat diff_image_cam1_sans_haut;
     cv::Mat diff_image_cam1_sans_haut_sans_bas;
@@ -14,11 +52,11 @@ std::vector<double> get_coord_dart(
 
     // On extrait la zone centrale
 
-    diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, 240);
-    diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-360);
+    diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, IMAGE_WIDTH/3);
+    diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-IMAGE_WIDTH/2);
 
-    diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, 240);
-    diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-360);
+    diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, IMAGE_WIDTH/3);
+    diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-IMAGE_WIDTH/2);
 
     if (DEBUG) {
         cv::imshow("diff_image_cam1", diff_image_cam1);
@@ -172,46 +210,4 @@ std::vector<double> get_coord_dart(
     // Extraction des coordonnées
     std::vector<double> coords = {point3D_real.at<double>(0, 0), point3D_real.at<double>(0, 2)};
     return coords;
-}
-
-std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
-
-    cv::Mat image_cam1_colors,image_cam2_colors;
-    cv::Mat image_cam1_gray,image_cam2_gray;
-
-    // Ouvre la première caméra
-    cv::VideoCapture cap1(c1);
-    if (!cap1.isOpened()) {
-        std::cerr << "Erreur : Impossible d'ouvrir la première caméra !" << std::endl;
-        throw std::runtime_error("Impossible d'ouvrir la première caméra");
-    }
-
-    // Définir la résolution de la caméra à 1280x720
-    cap1.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
-    cap1.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
-
-    cap1 >> image_cam1_colors;
-    //image_cam1_colors = cropBottomTwoThirds(image_cam1_colors);
-    cap1.release();  // On est obligé de fermer le flux sinon ça ne marche pas (Python ça marchait mieux)
-
-    // Ouvre la deuxième caméra
-    cv::VideoCapture cap2(c2);
-    if (!cap2.isOpened()) {
-        std::cerr << "Erreur : Impossible d'ouvrir la deuxième caméra !" << std::endl;
-        throw std::runtime_error("Impossible d'ouvrir la première caméra");
-    }
-
-    // Définir la résolution de la caméra à 1280x720
-    cap2.set(cv::CAP_PROP_FRAME_WIDTH, 1280);
-    cap2.set(cv::CAP_PROP_FRAME_HEIGHT, 720);
-
-    cap2 >> image_cam2_colors;
-    //image_cam2_colors = cropBottomTwoThirds(image_cam2_colors);
-    cap2.release();
-
-    // Conversion en nuance de gris
-    cv::cvtColor(image_cam1_colors, image_cam1_gray, cv::COLOR_BGR2GRAY);
-    cv::cvtColor(image_cam2_colors, image_cam2_gray, cv::COLOR_BGR2GRAY);
-
-    return std::make_pair(image_cam1_gray, image_cam2_gray);
 }

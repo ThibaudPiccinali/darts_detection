@@ -1,6 +1,9 @@
 #ifndef OBJECT_H
 #define OBJECT_H
 
+#include <cmath>
+#include <string>
+#include <iostream>
 #include <vector>
 #include <opencv2/opencv.hpp>
 

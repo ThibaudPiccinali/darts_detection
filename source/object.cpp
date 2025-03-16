@@ -1,10 +1,3 @@
-#include <cmath>
-
-#include <vector>
-#include <string>
-#include <iostream>
-#include <opencv2/opencv.hpp>
-
 #include "object.h"
 
 void Dartboard::to_init(json data) {

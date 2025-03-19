@@ -1,8 +1,8 @@
 #include "config.h"
 
 // Matrices intrinsèques des caméras
-const cv::Mat K1 = (cv::Mat_<float>(3, 3) << 459.44732253f, 0.0f, 339.56888157f, 0.0f, 462.62071383f, 222.54341588f, 0.0f, 0.0f, 1.0f);
-const cv::Mat K2 = (cv::Mat_<float>(3, 3) << 458.80917086f, 0.0f, 360.12752469f, 0.0f, 462.44782024f, 194.38816358f, 0.0f, 0.0f, 1.0f);
+const cv::Mat K1 = (cv::Mat_<float>(3, 3) << 690.14277479f, 0.0f, 676.04812155f, 0.0f, 691.13753231f, 343.43178529f, 0.0f, 0.0f, 1.0f);
+const cv::Mat K2 = (cv::Mat_<float>(3, 3) << 690.19862724f, 0.0f, 676.3834275f, 0.0f, 689.99201574f, 302.30485088f, 0.0f, 0.0f, 1.0f);
 
 // Transformation vers le référentiel des caméra (cam1)
 const cv::Mat RCAM1 = cv::Mat::eye(3, 3, CV_32F); // Rotation de la caméra 1

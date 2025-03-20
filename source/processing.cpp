@@ -125,3 +125,21 @@ cv::Mat triangulate_point(const cv::Mat& K1, const cv::Mat& K2, const cv::Mat& R
 
 return points3D_cart;
 }
+
+// Fonction pour lire une matrice depuis YAML et la convertir en cv::Mat
+cv::Mat readMatrix(const YAML::Node& node, int rows, int cols) {
+    std::vector<float> values;
+    for (const auto& val : node) {
+        values.push_back(val.as<float>());
+    }
+    
+    // Vérifier que le nombre d'éléments correspond à rows * cols
+    if (values.size() != rows * cols) {
+        std::cerr << "Erreur : Le nombre d'éléments dans la matrice ne correspond pas à " 
+                  << rows * cols << std::endl;
+        return cv::Mat();  // Retourner une matrice vide en cas d'erreur
+    }
+
+    // Créer et retourner la matrice
+    return cv::Mat(values).reshape(1, rows).clone(); // reshape(1, rows) pour un format de 3x3
+}

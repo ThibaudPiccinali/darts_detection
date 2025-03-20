@@ -1,9 +1,10 @@
 import cv2
 import glob
 import yaml
+import time
 import numpy as np
 
-def open_stream(list_index):
+def open_stream(list_index,frame_width,frame_height):
     cap = [0 for i in range(len(list_index))]
     j = 0
     for i in list_index:
@@ -11,9 +12,9 @@ def open_stream(list_index):
         if not cap[j].isOpened():
             print(f"Erreur : impossible d'ouvrir la caméra {i}")
         else:
-            # Forcer la résolution à 1280x720
-            cap[j].set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-            cap[j].set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+            # Forcer la résolution
+            cap[j].set(cv2.CAP_PROP_FRAME_WIDTH, frame_width)
+            cap[j].set(cv2.CAP_PROP_FRAME_HEIGHT, frame_height)
         j +=1
     return cap
 
@@ -181,6 +182,14 @@ def DLT(P1, P2, point1, point2):
     return Vh[3,0:3]/Vh[3,3]
 
 if __name__ == '__main__':
+    
+    with open("config.yaml", "r", encoding="utf-8") as file:
+        data = yaml.safe_load(file)
+
+    # Récupérer les valeurs
+    frame_width = data["frame_width"]
+    frame_height = data["frame_height"]
+    
     # Calibration des caméras (permet d'exporter matrice intrinséque et coefficients de distortion)
     mtx1, dist1 = calibrate_camera("setup_images/calibration/cam1/*")
     mtx2, dist2 = calibrate_camera("setup_images/calibration/cam2/*")
@@ -190,7 +199,11 @@ if __name__ == '__main__':
     
     # Detmine le centre de la cible
     
-    cap1,cap2= open_stream([0,1])
+    cap1,cap2= open_stream([0,1],frame_width,frame_height)
+    _ = get_frame(cap1)
+    _ = get_frame(cap2)
+    time.sleep(1) 
+    
     pixels_cam1 = get_frame(cap1)
     pixels_cam2 = get_frame(cap2)
     
@@ -210,7 +223,10 @@ if __name__ == '__main__':
     
     cv2.destroyAllWindows()
     
-    RT1 = np.concatenate([np.eye(3), [[0],[0],[0]]], axis = -1)
+    R1 = np.eye(3)
+    T1 = [[float(0)],[float(0)],[float(0)]]
+    
+    RT1 = np.concatenate([R1, T1], axis = -1)
     P1 = mtx1 @ RT1
     RT2 = np.concatenate([R, T], axis = -1)
     P2 = mtx2 @ RT2
@@ -222,12 +238,16 @@ if __name__ == '__main__':
     
     # Structuration des données pour YAML
     data = {
-        "camera1": {"intrinsics": mtx1.flatten().tolist(),"distortion_coeffs": dist1.tolist()},
-        "camera2": {"intrinsics": mtx2.flatten().tolist(),"distortion_coeffs": dist2.tolist()},
+        "frame_width": frame_width,
+        "frame_height": frame_height,
+        "camera1": {"intrinsics": mtx1.flatten().tolist(),"distortion_coeffs": dist1[0].tolist()},
+        "camera2": {"intrinsics": mtx2.flatten().tolist(),"distortion_coeffs": dist2[0].tolist()},
+        "rotation_cam1":R1.flatten().tolist(),
+        "translation_cam1":[T1[0][0],T1[1][0],T1[2][0]],
         "rotation_cam2":R.flatten().tolist(),
-        "translation_cam2":T.tolist(),
+        "translation_cam2":[T[0].tolist()[0],T[1].tolist()[0],T[2].tolist()[0]],
         "translation_centre_cible":point_centre_reel.tolist()
     }
     
     with open("config.yaml", "w", encoding="utf-8") as file:
-        yaml.dump(data, file, default_flow_style=True, allow_unicode=True)
+        yaml.dump(data, file, default_flow_style=False, allow_unicode=True)

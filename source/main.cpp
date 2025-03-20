@@ -227,7 +227,27 @@ void gestion_partie(void){
     CHECK(sem_post(acces_partie),"sem_post(acces_partie)");
     }
 }
+
 void compute_position(void){
+    // On récupère les matrices du fichier de configuration
+    YAML::Node config = YAML::LoadFile("config.yaml");
+    // Camera 1
+    const cv::Mat distCoeffs1 = readMatrix(config["camera1"]["distortion_coeffs"], 1, 5);
+    const cv::Mat K1 = readMatrix(config["camera1"]["intrinsics"], 3, 3);
+    const cv::Mat R1 = readMatrix(config["rotation_cam1"], 3, 3);
+    const cv::Mat T1 = readMatrix(config["translation_cam1"], 3, 1);
+
+    // Camera 2
+    const cv::Mat distCoeffs2 = readMatrix(config["camera2"]["distortion_coeffs"],1,5);
+    const cv::Mat K2 = readMatrix(config["camera2"]["intrinsics"], 3, 3);
+    const cv::Mat R2 = readMatrix(config["rotation_cam2"], 3, 3);
+    const cv::Mat T2 = readMatrix(config["translation_cam2"], 3, 1);
+
+    // Translation vers le centre de la cible
+    const cv::Mat T_target = readMatrix(config["translation_centre_cible"], 3, 1);
+
+    int frame_height = config["frame_height"].as<int>();
+
     while(1){
         // On attends les images soient pretes
         CHECK(sem_wait(image),"sem_wait(image)");
@@ -238,7 +258,7 @@ void compute_position(void){
         cv::cvtColor(diff_cam1, diff_cam1, cv::COLOR_BGR2GRAY);
         cv::cvtColor(diff_cam2, diff_cam2, cv::COLOR_BGR2GRAY);
 
-        std::vector<double> pos = get_coord_dart(diff_cam1,diff_cam2,false);
+        std::vector<double> pos = get_coord_dart(diff_cam1,diff_cam2,frame_height,K1,K2,R1,T1,R2,T2,T_target,distCoeffs1,distCoeffs2,false);
         std::cout << "Coordonnées Dart: (" << pos[0] << ", " << pos[1] << ")" << std::endl;
         CHECK(sem_wait(acces_partie),"sem_post(acces_partie)");
         std::copy(pos.begin(), pos.begin() + 2, partie->position);
@@ -246,7 +266,13 @@ void compute_position(void){
         CHECK(sem_post(score_flech),"sem_post(score_flech)");
     }
 }
+
 void gestion_camera(void){
+    // On récupère les donnés du fichier de configuration
+    YAML::Node config = YAML::LoadFile("config.yaml");
+    int frame_width = config["frame_width"].as<int>();
+    int frame_height = config["frame_height"].as<int>();
+
     int count_cam1;
     int count_cam2;
     // Déclare les matrices pour les images
@@ -262,13 +288,13 @@ void gestion_camera(void){
         CHECK(sem_wait(cam),"sem_wait(cam)");
 
         // Capture de l'image de référence
-        std::pair<cv::Mat, cv::Mat> images_ref_gray = get_gray_images_both_cameras(CAP1, CAP2);
+        std::pair<cv::Mat, cv::Mat> images_ref_gray = get_gray_images_both_cameras(CAP1, CAP2,frame_width,frame_height);
         base_image_cam1_gray = images_ref_gray.first;
         base_image_cam2_gray = images_ref_gray.second;
 
         while (1){
             // Capture des images courantes
-            std::pair<cv::Mat, cv::Mat> images_courantes_gray = get_gray_images_both_cameras(CAP1, CAP2);
+            std::pair<cv::Mat, cv::Mat> images_courantes_gray = get_gray_images_both_cameras(CAP1, CAP2,frame_width,frame_height);
             dart_image_cam1_gray = images_courantes_gray.first;
             dart_image_cam2_gray = images_courantes_gray.second;
 
@@ -277,10 +303,10 @@ void gestion_camera(void){
             diff_image_cam2 = binary_diff_images(base_image_cam2_gray, dart_image_cam2_gray,35);
 
             // On extrait la zone centrale
-            diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, IMAGE_WIDTH/3);
-            diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-IMAGE_WIDTH/2);
-            diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, IMAGE_WIDTH/3);
-            diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-IMAGE_WIDTH/2);
+            diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, frame_height/3);
+            diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-frame_height/2);
+            diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, frame_height/3);
+            diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-frame_height/2);
 
             // Léger filtrage
             cv::medianBlur(diff_image_cam1_sans_haut_sans_bas, diff_image_cam1_sans_haut_sans_bas, 3);
@@ -305,6 +331,7 @@ void gestion_camera(void){
         CHECK(sem_post(mvt_cam),"sem_post(mvt_cam)");
     }
 }
+
 void gestion_flechette(void){
     while(1){
         CHECK(sem_wait(demande_flech),"sem_wait(demande_flech)");

@@ -1,9 +1,8 @@
 #include "processing.h"
-#include "config.h"
 #include "vision.h"
 
 
-std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
+std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2,int frame_width,int frame_height){
 
     cv::Mat image_cam1_colors,image_cam2_colors;
     cv::Mat image_cam1_gray,image_cam2_gray;
@@ -16,8 +15,8 @@ std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
     }
 
     // Définir la résolution de la caméra
-    cap1.set(cv::CAP_PROP_FRAME_WIDTH, IMAGE_LENGTH);
-    cap1.set(cv::CAP_PROP_FRAME_HEIGHT, IMAGE_WIDTH);
+    cap1.set(cv::CAP_PROP_FRAME_WIDTH, frame_width);
+    cap1.set(cv::CAP_PROP_FRAME_HEIGHT, frame_height);
 
     cap1 >> image_cam1_colors;
     cap1.release();  // On est obligé de fermer le flux sinon ça ne marche pas (Python ça marchait mieux)
@@ -30,8 +29,8 @@ std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
     }
 
     // Définir la résolution de la caméra
-    cap2.set(cv::CAP_PROP_FRAME_WIDTH, IMAGE_LENGTH);
-    cap2.set(cv::CAP_PROP_FRAME_HEIGHT, IMAGE_WIDTH);
+    cap2.set(cv::CAP_PROP_FRAME_WIDTH, frame_width);
+    cap2.set(cv::CAP_PROP_FRAME_HEIGHT, frame_height);
 
     cap2 >> image_cam2_colors;
     cap2.release();
@@ -43,8 +42,7 @@ std::pair<cv::Mat, cv::Mat> get_gray_images_both_cameras(int c1,int c2){
     return std::make_pair(image_cam1_gray, image_cam2_gray);
 }
 
-std::vector<double> get_coord_dart(const cv::Mat& diff_image_cam1, const cv::Mat& diff_image_cam2,bool DEBUG) {
-
+std::vector<double> get_coord_dart(const cv::Mat& diff_image_cam1, const cv::Mat& diff_image_cam2,int frame_height,const cv::Mat& K1,const cv::Mat& K2,const cv::Mat& RCAM1,const cv::Mat& TCAM1,const cv::Mat& RCAM2,const cv::Mat& TCAM2,const cv::Mat& T_target,const cv::Mat& dist1,const cv::Mat& dist2,bool DEBUG){
     cv::Mat diff_image_cam1_sans_haut;
     cv::Mat diff_image_cam1_sans_haut_sans_bas;
     cv::Mat diff_image_cam2_sans_haut;
@@ -52,11 +50,11 @@ std::vector<double> get_coord_dart(const cv::Mat& diff_image_cam1, const cv::Mat
 
     // On extrait la zone centrale
 
-    diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, IMAGE_WIDTH/3);
-    diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-IMAGE_WIDTH/2);
+    diff_image_cam1_sans_haut = filter_by_y(diff_image_cam1, frame_height/3);
+    diff_image_cam1_sans_haut_sans_bas = filter_by_y(diff_image_cam1_sans_haut,-frame_height/2);
 
-    diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, IMAGE_WIDTH/3);
-    diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-IMAGE_WIDTH/2);
+    diff_image_cam2_sans_haut = filter_by_y(diff_image_cam2, frame_height/3);
+    diff_image_cam2_sans_haut_sans_bas = filter_by_y(diff_image_cam2_sans_haut,-frame_height/2);
 
     if (DEBUG) {
         cv::imshow("diff_image_cam1", diff_image_cam1);
@@ -194,11 +192,31 @@ std::vector<double> get_coord_dart(const cv::Mat& diff_image_cam1, const cv::Mat
         std::cout << "Le point le plus bas sur cam2 : " << lowest_point_felchette_cam2 << std::endl;
     }
 
+    // Correction de la distortion
+    cv::Mat lowest_point_felchette_cam1_mat(lowest_point_felchette_cam1);
+    cv::Mat lowest_point_felchette_cam2_mat(lowest_point_felchette_cam2);
+    cv::Mat lowest_point_felchette_cam1_undistorted;
+    cv::Mat lowest_point_felchette_cam2_undistorted;
+    cv::undistortPoints(lowest_point_felchette_cam1_mat, lowest_point_felchette_cam1_undistorted, K1, dist1, cv::noArray(), K1);
+    cv::undistortPoints(lowest_point_felchette_cam2_mat, lowest_point_felchette_cam2_undistorted, K2, dist2, cv::noArray(), K2);
+
+    cv::Point2f p1_corrected = lowest_point_felchette_cam1_undistorted.at<cv::Point2f>(0, 0);
+    cv::Point2f p2_corrected = lowest_point_felchette_cam2_undistorted.at<cv::Point2f>(0, 0);
+
     // Triangulation pour obtenir les points 3D
-    cv::Mat points_2D_felchette = triangulate_point(K1, K2, RCAM1, TCAM1, RCAM2, TCAM2,lowest_point_felchette_cam1, lowest_point_felchette_cam2);
+    cv::Mat points_2D_felchette = triangulate_point(K1, K2, RCAM1, TCAM1, RCAM2, TCAM2,p1_corrected, p2_corrected);
 
-    cv::Mat point3D_real = R2 * R1* points_2D_felchette + T;
+    // On remet les points dans le référentiel de la cible
+    cv::Mat R1 = (cv::Mat_<double>(3, 3) << -1.0, 0.0, 0.0,0.0, -1.0, 0.0,0.0, 0.0, 1.0); // Rotation de 180° sur Z
+    cv::Mat R2 = (cv::Mat_<double>(3, 3) << 1.0, 0.0, 0.0,0.0, -1.0, 0.0,0.0, 0.0, -1.0); // Rotation 180° sur X
 
+    cv::Mat T_target_64F;
+    T_target.convertTo(T_target_64F, CV_64F);
+
+    cv::Mat point3D_real = points_2D_felchette + T_target_64F;
+    point3D_real = R1*points_2D_felchette;
+    point3D_real = R2*points_2D_felchette;
+    
     if (DEBUG) {
         // Affichage des résultats
         std::cout << "Coordonnées de la flechette (repère cam1) :\n";

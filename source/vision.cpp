@@ -214,8 +214,8 @@ std::vector<double> get_coord_dart(const cv::Mat& diff_image_cam1, const cv::Mat
     T_target.convertTo(T_target_64F, CV_64F);
 
     cv::Mat point3D_real = points_2D_felchette + T_target_64F;
-    point3D_real = R1*points_2D_felchette;
-    point3D_real = R2*points_2D_felchette;
+    point3D_real = R1*point3D_real;
+    point3D_real = R2*point3D_real;
     
     if (DEBUG) {
         // Affichage des résultats

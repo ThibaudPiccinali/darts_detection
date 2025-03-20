@@ -199,7 +199,7 @@ if __name__ == '__main__':
     
     # Detmine le centre de la cible
     
-    cap1,cap2= open_stream([0,1],frame_width,frame_height)
+    cap1,cap2= open_stream([0,2],frame_width,frame_height)
     _ = get_frame(cap1)
     _ = get_frame(cap2)
     time.sleep(1) 

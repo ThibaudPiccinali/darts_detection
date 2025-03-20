@@ -57,7 +57,7 @@ def get_data():
         if(sum_last_3_darts == -3):
             darts = [[None,None]]
         save_image_dart_on_board("images/dartboard.png",darts)
-    print(darts)
+    print(response)
     return response
 
 # Route pour démarer la partie

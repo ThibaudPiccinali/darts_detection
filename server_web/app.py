@@ -51,11 +51,13 @@ def get_data():
         if (response["position"][0]==-999 and response["position"][1]==999):
             darts.append([None,None])
         else:
+            while([None,None] in darts):
+                darts.remove([None,None])
             darts.append(response["position"])
         if(sum_last_3_darts == -3):
             darts = [[None,None]]
         save_image_dart_on_board("images/dartboard.png",darts)
-    print(response)
+    print(darts)
     return response
 
 # Route pour démarer la partie

@@ -35,3 +35,8 @@ Une fois lancé, le système devrait être prêt à commencer une partie.
 Le pilotage de la partie s'effectue à l'aide d'une interface web. Il suffit de la lancer à l'aide du script ```server_web/app.py``` et de se rendre sur le lien http://127.0.0.1:5000. Vous pourrez ainsi gérer l'ensemble de la partie via ce site web.
 
 A noter que l'adresse réseau de la machine où s'exécute le code principal doit être configurée dans le fichier ```server_web/app.py``` au sein de la fonction ```send_command```.
+
+## Démonstration
+
+Pour une démonstration du système, vous pouvez visionner la vidéo suivante :
+https://youtu.be/i5ayhuvZMgI?si=fUC4OQUIXnoK02U6

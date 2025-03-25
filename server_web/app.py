@@ -24,8 +24,7 @@ radius_triple_outer="10.6"
 
 # Fonction pour envoyer les commandes sur le port 80 (ou écoute la partie C++)
 def send_command(command):
-    host = '192.168.0.109'
-    #host = '127.0.0.1'
+    host = '127.0.0.1'  # Adresse à configurer (adresse de la machine qui exécute le code principal C++)
     port = 8080
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((host, port))
